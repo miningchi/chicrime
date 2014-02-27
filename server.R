@@ -51,24 +51,9 @@ shinyServer(function(input, output) {
       return(output)
     }
     
-    ## Mini function 2
-    mini.getdata <- function(temp.period, temp.geocode, n.period) {
-      df <- ldply(.data = fromJSON(getURL(paste0("http://data.police.uk/api/crimes-street/all-crime?lat=",
-                                                 temp.geocode[2], "&lng=", temp.geocode[1],
-                                                 "&date=", temp.period[n.period]))), .fun = mini.unlist)
-      return(df)
-    }
-    
     ## Use Reactive Functions
     temp.geocode <- map.geocode()
     temp.period <- map.period()
-    
-    ## Download data and reformat (in parallel mode if num_core >= 2)
-    df <- foreach(p.period = 1:length(temp.period),
-                  .combine = rbind,
-                  .multicombine = TRUE,
-                  .packages = c("ggmap", "RJSONIO", "plyr", "RCurl")) %dopar%
-      mini.getdata(temp.period, temp.geocode, n.period = p.period)
     
     ## Output
     df
