@@ -87,6 +87,11 @@ shinyUI(pageWithSidebar(
       HTML('Version 0.1.2'),
       HTML('<br>'),
       HTML('Deployed on 04-Feb-2013')
+    ),
+    
+    wellPanel(
+      helpText(HTML("<b>CREDITS</b>")),
+      HTML('<a href="https://blenditbayes.shinyapps.io/crimemap/" target=" blank">Crime Data Visualization</a>,  ')
     )
     
   ),
