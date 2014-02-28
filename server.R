@@ -68,9 +68,9 @@ shinyServer(function(input, output) {
   output$datatable <- renderDataTable({
     ##Main Data File
     load("./demo/Crimestest.rda")
-    df$NewDate <- as.Date(df$Date, format="%m/%d/%Y %H:%M")
+    
+    #Subset by date
     crimebydate <- subset(df, NewDate > as.Date(input$startdate) & NewDate < as.Date(input$enddate))
-   
     
     ##Creates smaller database based on crime type
     crimetypedatabase <- subset(crimebydate, Primary.Type == input$crimetype)
@@ -82,7 +82,7 @@ shinyServer(function(input, output) {
   }, options = list(aLengthMenu = c(10, 25, 50, 100, 1000), iDisplayLength = 10))
   
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## Output 2 - Heat Map
+  ## Output 2 - Map
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
   output$map <- renderPlot({
@@ -92,7 +92,6 @@ shinyServer(function(input, output) {
     
     ##Creates smaller database based on crime type
     load("./demo/Crimestest.rda")
-    df$NewDate <- as.Date(df$Date, format="%m/%d/%Y %H:%M")
     crimebydate <- subset(df, NewDate > as.Date(input$startdate) & NewDate < as.Date(input$enddate))
     crimetypedatabase <- subset(crimebydate, Primary.Type == input$crimetype)
     
@@ -133,11 +132,12 @@ shinyServer(function(input, output) {
     
     #load data  
     load("./demo/Crimestest.rda")
-    crimetypedatabase <- subset(df, Primary.Type == input$crimetype)
-    crimetypedatabase$NewDate <- strptime(crimetypedatabase$Date, format="%m/%d/%Y %H:%M")
+    crimebydate <- subset(df, NewDate > as.Date(input$startdate) & NewDate < as.Date(input$enddate))
+    crimetypedatabase <- subset(crimebydate, Primary.Type == input$crimetype)
+    crimetypedatabase$PosixDate <- strptime(crimetypedatabase$Date, format="%m/%d/%Y %H:%M")
   
   #Convert to XTS for analysis
-    df.xts <- xts(x = crimetypedatabase[, c(6)], order.by = crimetypedatabase[, "NewDate"])
+    df.xts <- xts(x = crimetypedatabase[, c(6)], order.by = crimetypedatabase[, "PosixDate"])
    colnames(df.xts)<-'Primary.Type'
     #sum by crime type
  #dyearly <- apply.yearly(df.xts, function(d) {print(d)}) - Troubleshooting

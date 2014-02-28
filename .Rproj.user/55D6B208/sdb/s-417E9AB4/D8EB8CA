@@ -1,0 +1,22 @@
+{
+    "contents" : "",
+    "created" : 1392593353037.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "D8EB8CA",
+    "lastKnownWriteTime" : 152968064,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "caption" : "temp.geocode",
+        "contentUrl" : "content?title=temp.geocode&file=e8076b8291844f078303c9dcbc88cdd0.htm",
+        "displayedObservations" : 1,
+        "displayedVariables" : 2,
+        "totalObservations" : 1,
+        "variables" : 2
+    },
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}
