@@ -9,6 +9,8 @@ library(plyr)
 library(markdown)
 library(rCharts)
 library(parallel)
+library(xts)
+library(stringr)
 
 ## Define server logic required to summarize and view the selected dataset
 shinyServer(function(input, output) {
@@ -131,34 +133,18 @@ shinyServer(function(input, output) {
     
     #load data  
     load("./demo/Crimestest.rda")
-    df$NewDate <- as.Date(df$Date, format="%m/%d/%Y %H:%M")
     crimetypedatabase <- subset(df, Primary.Type == input$crimetype)
+    crimetypedatabase$NewDate <- strptime(crimetypedatabase$Date, format="%m/%d/%Y %H:%M")
   
-    plot1 <- ggplot(df, aes(x = month, fill = category)) + 
-      geom_bar(colour = "black") + facet_wrap(~ category) +
-      labs(x = "Months", y = "Crime Records") + 
-      ggtitle(paste("Crimes around ", center.df$Location, 
-                    ": Trends from ", temp.period[1],
-                    " to ", temp.period[length(temp.period)], sep="")) +
-      theme_bw() +
-      theme(
-        plot.title = element_text(size = 36, face = 'bold', vjust = 2),
-        #axis.text.x = element_text(angle = 90, hjust = 1),
-        axis.text.x = element_blank(),
-        axis.text = element_text(size = 24),
-        axis.title.x = element_text(size = 32),
-        axis.title.y = element_text(size = 32),
-        axis.ticks.x = element_blank(),
-        strip.background = element_rect(fill = 'grey80'),
-        strip.text.x = element_text(size = 26),
-        legend.position = "none",
-        panel.grid = element_blank()
-      )
-    
-    ## Print
-    print(plot1)
-    
-    }, width = 1280, height = 1280)
+  #Convert to XTS for analysis
+    df.xts <- xts(x = crimetypedatabase[, c(6)], order.by = crimetypedatabase[, "NewDate"])
+   colnames(df.xts)<-'Primary.Type'
+    #sum by crime type
+ #dyearly <- apply.yearly(df.xts, function(d) {print(d)}) - Troubleshooting
+    dyearly <- apply.monthly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})
+    print(dyearly)
+  plot(dyearly)
+    }, width = 800, height = 800)
   
   })
     
