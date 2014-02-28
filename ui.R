@@ -109,7 +109,7 @@ shinyUI(pageWithSidebar(
       tabPanel("Data", dataTableOutput("datatable")),
       tabPanel("Crime Map", plotOutput("map")),
       tabPanel("Trends", plotOutput("trends1")),
-      tabPanel("Related News", includeMarkdown("docs/related_news.md")),
+      tabPanel("To Do", includeMarkdown("docs/To_do.md")),
       tabPanel("Changes", includeMarkdown("docs/changes.md"))
     ) 
   )
