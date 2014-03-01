@@ -139,9 +139,8 @@ shinyServer(function(input, output) {
    colnames(df.xts)<-'Primary.Type'
     #sum by crime type
  #dyearly <- apply.yearly(df.xts, function(d) {print(d)}) - Troubleshooting
-    dyearly <- apply.monthly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})
-    print(dyearly)
-  plot(dyearly)
+    crimebytime <- apply.monthly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})
+  plot(crimebytime)
     }, width = 800, height = 800)
   
   })
