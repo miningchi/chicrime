@@ -6,7 +6,6 @@ library(rCharts)
 library(doSNOW)
 library(foreach)
 
-# Define UI for miles per gallon application
 shinyUI(pageWithSidebar(
   
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -50,29 +49,7 @@ shinyUI(pageWithSidebar(
       sliderInput("zoom", "Zoom Level (Recommended - 14):", 
                   min = 9, max = 20, step = 1, value = 12)
     ),
-    
-    wellPanel(
-      helpText(HTML("<b>DENSITY PLOT SETTINGS</b>")),
-      sliderInput("alpharanage", "Alpha Range:",
-                  min = 0, max = 1, step = 0.1, value = c(0.1, 0.4)),
-      sliderInput("bins", "Number of Bins:", 
-                  min = 5, max = 50, step = 5, value = 15),
-      sliderInput("boundwidth", "Boundary Lines Width:", 
-                  min = 0, max = 1, step = 0.1, value = 0.1),
-      selectInput("boundcolour", "Boundary Lines Colour:", 
-                  choice = c("grey95","black", "white", "red", "orange", "yellow", "green", "blue", "purple")),
-      selectInput("low", "Fill Gradient (Low):", 
-                  choice = c("yellow", "red", "orange", "green", "blue", "purple", "white", "black", "grey")),
-      selectInput("high", "Fill Gradient (High):", 
-                  choice = c("red", "orange", "yellow", "green", "blue", "purple", "white", "black", "grey"))
-    ),
-    
-    wellPanel(   
-      helpText(HTML("<b>MISC. SETTINGS</b>")),
-      checkboxInput("watermark", "Use 'Blenditbayes' Watermark?", TRUE),
-      helpText("Note: automatically disabled when 'Facet' is used.")
-    ),
-    
+  
     wellPanel(
       helpText(HTML("<b>ABOUT US</b>")),
       HTML('Rajiv Shah & Chris Pulec'),
@@ -91,7 +68,8 @@ shinyUI(pageWithSidebar(
     
     wellPanel(
       helpText(HTML("<b>CREDITS</b>")),
-      HTML('<a href="https://blenditbayes.shinyapps.io/crimemap/" target=" blank">Crime Data Visualization</a>,  ')
+      HTML('<a href="https://blenditbayes.shinyapps.io/crimemap/" target=" blank">Crime Data Visualization</a>,  '),
+      HTML('<a href="https://data.cityofchicago.org" target=" blank">Chicaog Crime Data Source</a>,  ')
     )
     
   ),
