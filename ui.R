@@ -37,7 +37,7 @@ shinyUI(pageWithSidebar(
                 min = "startdate", max = "2014-09-30"),
       ##Need some validation that enddate is after start date
       
-      helpText("Note: Enter info here if we want")      
+      helpText("MM-DD-YEAR as Date Format")      
     ),
     
     wellPanel(
