@@ -72,7 +72,7 @@ shinyServer(function(input, output) {
     crimebydate <- subset(df, NewDate > as.Date(input$startdate) & NewDate < as.Date(input$enddate))
     ##Creates smaller database based on crime type
     crimetypedatabase <- subset(crimebydate, Primary.Type == input$crimetype)
-  
+    crimetypedatabase$PosixDate <- as.POSIXct(strptime(crimetypedatabase$Date, format="%m/%d/%Y %H:%M"))
     print (input$crimetype)
   ##crimetypedatabase
     crimetypedatabase
@@ -132,16 +132,45 @@ shinyServer(function(input, output) {
     load("./data/Crimestest.rda")
     crimebydate <- subset(df, NewDate > as.Date(input$startdate) & NewDate < as.Date(input$enddate))
     crimetypedatabase <- subset(crimebydate, Primary.Type == input$crimetype)
-    crimetypedatabase$PosixDate <- strptime(crimetypedatabase$Date, format="%m/%d/%Y %H:%M")
+   # crimetypedatabase <- crimetypedatabase[complete.cases(crimetypedatabase), ]
+    crimetypedatabase$PosixDate <- as.POSIXct(strptime(crimetypedatabase$Date, format="%m/%d/%Y %H:%M"))
+ 
+  #Convert to XTS for analysis Columns should be Primary Type and NewDate
+    df.xts <- xts(x = crimetypedatabase[, c(6,23)], order.by = crimetypedatabase[, "PosixDate"])
   
-  #Convert to XTS for analysis
-    df.xts <- xts(x = crimetypedatabase[, c(6)], order.by = crimetypedatabase[, "PosixDate"])
-   colnames(df.xts)<-'Primary.Type'
-    #sum by crime type
- #dyearly <- apply.yearly(df.xts, function(d) {print(d)}) - Troubleshooting
-    crimebytime <- apply.monthly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})
-  plot(crimebytime)
-    }, width = 800, height = 800)
+    #header <- head(df.xts, n=10)
+    #print(header)
+    #dyearly <- apply.yearly(df.xts, function(d) {print(d)}) # Troubleshooting
+  
+  #sum by crime type
+  crimebytime <- apply.monthly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})
+  
+  header <- head(crimebytime, n=10)
+  print(header)
+  
+  test <- to.daily(crimebytime,drop.time=TRUE,range)
+  header <- head(test, n=10)
+  print(header)
+  
+  
+ ##ADD WEATHER
+ 
+  load("./data/weather.rda")
+ #crimebytime$weather <- weatherfinal$TempFahr[match(crimebytime$NewDate,weatherfinal$wDate)]
+ weatherxts <- xts(weatherfinal$TempFahr,weatherfinal$PosixDate)
+ #Round data to daily
+ 
+ crimeandweather <-merge(crimebytime, weatherxts)
+ data <- crimeandweather[index(df.xts),]
+
+ header <- head(data, n=10)
+ print(header)
+ 
+ ##Plotting
+ #plot(crimebytime)
+ plot(as.zoo(data), screens=1)
+ plot(as.zoo(data), plot.type='single')
+  }, width = 800, height = 800)
   
   })
     
