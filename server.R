@@ -69,7 +69,7 @@ shinyServer(function(input, output) {
     ##Main Data File
     load("./data/Crimestest.rda")
     #Subsets by date
-    crimebydate <- subset(df, NewDate > as.Date(input$startdate) & NewDate < as.Date(input$enddate))
+    crimebydate <- subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
     ##Creates smaller database based on crime type
     crimetypedatabase <- subset(crimebydate, Primary.Type == input$crimetype)
     crimetypedatabase$PosixDate <- as.POSIXct(strptime(crimetypedatabase$Date, format="%m/%d/%Y %H:%M"))
@@ -90,7 +90,7 @@ shinyServer(function(input, output) {
     
     ##Creates smaller database based on crime type
     load("./data/Crimestest.rda")
-    crimebydate <- subset(df, NewDate > as.Date(input$startdate) & NewDate < as.Date(input$enddate))
+    crimebydate <- subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
     crimetypedatabase <- subset(crimebydate, Primary.Type == input$crimetype)
     
     ##Plots values
@@ -130,7 +130,7 @@ shinyServer(function(input, output) {
     
     #load data  
     load("./data/Crimestest.rda")
-    crimebydate <- subset(df, NewDate > as.Date(input$startdate) & NewDate < as.Date(input$enddate))
+    crimebydate <- subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
     crimetypedatabase <- subset(crimebydate, Primary.Type == input$crimetype)
    # crimetypedatabase <- crimetypedatabase[complete.cases(crimetypedatabase), ]
     crimetypedatabase$PosixDate <- as.POSIXct(strptime(crimetypedatabase$Date, format="%m/%d/%Y %H:%M"))
@@ -148,17 +148,20 @@ shinyServer(function(input, output) {
   header <- head(crimebytime, n=10)
   print(header)
   
-  test <- to.daily(crimebytime,drop.time=TRUE,range)
-  header <- head(test, n=10)
-  print(header)
+  #test <- to.daily(crimebytime,drop.time=TRUE,range)
+  #header <- head(test, n=10)
+ # print(header)
   
   
  ##ADD WEATHER
  
   load("./data/weather.rda")
  #crimebytime$weather <- weatherfinal$TempFahr[match(crimebytime$NewDate,weatherfinal$wDate)]
- weatherxts <- xts(weatherfinal$TempFahr,weatherfinal$PosixDate)
+ weatherxts <- xts(weatherdata$TempFahr,weatherdata$PosixDate)
  #Round data to daily
+ 
+ header <- head(weatherxts, n=10)
+ print(header)
  
  crimeandweather <-merge(crimebytime, weatherxts)
  data <- crimeandweather[index(df.xts),]
