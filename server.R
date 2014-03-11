@@ -132,47 +132,28 @@ shinyServer(function(input, output) {
     load("./data/Crimestest.rda")
     crimebydate <- subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
     crimetypedatabase <- subset(crimebydate, Primary.Type == input$crimetype)
-   # crimetypedatabase <- crimetypedatabase[complete.cases(crimetypedatabase), ]
-    crimetypedatabase$PosixDate <- as.POSIXct(strptime(crimetypedatabase$Date, format="%m/%d/%Y %H:%M"))
- 
-  #Convert to XTS for analysis Columns should be Primary Type and NewDate
+
+  #Convert to XTS for analysis Columns should be Primary Type and PosixData
     df.xts <- xts(x = crimetypedatabase[, c(6,23)], order.by = crimetypedatabase[, "PosixDate"])
-  
-    #header <- head(df.xts, n=10)
-    #print(header)
     #dyearly <- apply.yearly(df.xts, function(d) {print(d)}) # Troubleshooting
-  
-  #sum by crime type
-  crimebytime <- apply.monthly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})
-  
-  header <- head(crimebytime, n=10)
-  print(header)
-  
-  #test <- to.daily(crimebytime,drop.time=TRUE,range)
-  #header <- head(test, n=10)
- # print(header)
-  
+  #sum by crime type - NEED to allow different periods
+    crimebytime <- apply.monthly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})
+    crimebytime<-data.frame(index(crimebytime),coredata(crimebytime[,1]))
+    colnames(crimebytime)<-c("dates","crime")
   
  ##ADD WEATHER
- 
   load("./data/weather.rda")
- #crimebytime$weather <- weatherfinal$TempFahr[match(crimebytime$NewDate,weatherfinal$wDate)]
+ weatherdata <- subset(weatherdata, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
  weatherxts <- xts(weatherdata$TempFahr,weatherdata$PosixDate)
- #Round data to daily
- 
- header <- head(weatherxts, n=10)
- print(header)
- 
- crimeandweather <-merge(crimebytime, weatherxts)
- data <- crimeandweather[index(df.xts),]
+ weatherxts<-data.frame(index(weatherxts),coredata(weatherxts[,1]))
+ colnames(weatherxts)<-c("dates","temperature")
 
- header <- head(data, n=10)
- print(header)
- 
- ##Plotting
- #plot(crimebytime)
- plot(as.zoo(data), screens=1)
- plot(as.zoo(data), plot.type='single')
+# Plotting
+ data<-ggplot(crimebytime,aes(dates,crime)) + xlab(NULL) + ylab("crime") + scale_y_log10() 
+ data2 <- data +geom_line(aes(color="First line"))+ ggtitle("Crime Trends")
+ data3 <- data2 +geom_line(data=weatherxts,aes(dates, temperature, color="Second line"))
+
+ print(data3)
   }, width = 800, height = 800)
   
   })
