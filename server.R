@@ -152,8 +152,52 @@ shinyServer(function(input, output) {
  data<-ggplot(crimebytime,aes(dates,crime)) + xlab(NULL) + ylab("crime") + scale_y_log10() 
  data2 <- data +geom_line(aes(color="First line"))+ ggtitle("Crime Trends")
  data3 <- data2 +geom_line(data=weatherxts,aes(dates, temperature, color="Second line"))
+ 
+#New approach to get two Y lines:
 
- print(data3)
+library(ggplot2)
+library(gtable)
+library(grid)
+
+grid.newpage()
+
+# two plots
+# from http://rpubs.com/kohske/dual_axis_in_ggplot2
+
+p1 <-ggplot(crimebytime,aes(dates,crime)) + geom_line(aes(color="red")) + theme_bw()
+p2 <-ggplot(weatherxts,aes(dates,temperature)) + geom_line(aes(color="blue")) + theme_bw() %+replace% 
+  theme(panel.background = element_rect(fill = NA))
+
+# extract gtable
+g1 <- ggplot_gtable(ggplot_build(p1))
+g2 <- ggplot_gtable(ggplot_build(p2))
+
+# overlap the panel of 2nd plot on that of 1st plot
+pp <- c(subset(g1$layout, name == "panel", se = t:r))
+g <- gtable_add_grob(g1, g2$grobs[[which(g2$layout$name == "panel")]], pp$t, 
+                     pp$l, pp$b, pp$l)
+
+# axis tweaks
+ia <- which(g2$layout$name == "axis-l")
+ga <- g2$grobs[[ia]]
+ax <- ga$children[[2]]
+ax$widths <- rev(ax$widths)
+ax$grobs <- rev(ax$grobs)
+ax$grobs[[1]]$x <- ax$grobs[[1]]$x - unit(1, "npc") + unit(0.15, "cm")
+g <- gtable_add_cols(g, g2$widths[g2$layout[ia, ]$l], length(g$widths) - 1)
+g <- gtable_add_grob(g, ax, pp$t, length(g$widths) - 1, pp$b)
+
+# draw it
+grid.draw(g)
+
+
+
+
+
+
+
+
+#print(data3)
   }, width = 800, height = 800)
   
   })
