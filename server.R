@@ -20,6 +20,9 @@ shinyServer(function(input, output) {
   ## Reactive Functions
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
+  load(file = "./data/weather.rda", envir = .GlobalEnv)
+  load(file = "./data/crimestest.rda", envir = .GlobalEnv)
+  
   ## Get Geocode
   map.geocode <- reactive({
     suppressMessages(data.frame(geocode = geocode(input$poi)))
@@ -56,6 +59,7 @@ shinyServer(function(input, output) {
     ## Use Reactive Functions
     temp.geocode <- map.geocode()
     temp.period <- map.period()
+   
     
     ## Output
     df
@@ -66,8 +70,6 @@ shinyServer(function(input, output) {
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
   output$datatable <- renderDataTable({
-    ##Main Data File
-    load("./data/Crimestest.rda")
     #Subsets by date
     crimebydate <- subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
     ##Creates smaller database based on crime type
@@ -89,7 +91,6 @@ shinyServer(function(input, output) {
     colnames(map.center) <- c("lon","lat")
     
     ##Creates smaller database based on crime type
-    load("./data/Crimestest.rda")
     crimebydate <- subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
     crimetypedatabase <- subset(crimebydate, Primary.Type == input$crimetype)
     
@@ -128,8 +129,6 @@ shinyServer(function(input, output) {
   ###### TRENDS ###########
     output$trends1 <- renderPlot({
     
-    #load data  
-    load("./data/Crimestest.rda")
     crimebydate <- subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
     crimetypedatabase <- subset(crimebydate, Primary.Type == input$crimetype)
 
@@ -142,7 +141,6 @@ shinyServer(function(input, output) {
     colnames(crimebytime)<-c("dates","crime")
   
  ##ADD WEATHER
-  load("./data/weather.rda")
  weatherdata <- subset(weatherdata, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
  weatherxts <- xts(weatherdata$TempFahr,weatherdata$PosixDate)
  weatherxts<-data.frame(index(weatherxts),coredata(weatherxts[,1]))
