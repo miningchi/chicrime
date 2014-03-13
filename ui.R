@@ -69,7 +69,8 @@ shinyUI(pageWithSidebar(
     wellPanel(
       helpText(HTML("<b>CREDITS</b>")),
       HTML('<a href="https://blenditbayes.shinyapps.io/crimemap/" target=" blank">Crime Data Visualization</a>,  '),
-      HTML('<a href="https://data.cityofchicago.org" target=" blank">Chicaog Crime Data Source</a>,  ')
+      HTML('<br>'),
+      HTML('<a href="https://data.cityofchicago.org" target=" blank">Chicago Crime Data Source</a>,  ')
     )
     
   ),
