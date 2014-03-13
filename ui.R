@@ -1,10 +1,10 @@
-library(shiny)
+suppressMessages(library(shiny))
 # library(shinyIncubator)
 # library(ggplot2)
 # library(ggmap)
-library(rCharts)
-library(doSNOW)
-library(foreach)
+suppressMessages(library(rCharts))
+suppressMessages(library(doSNOW))
+suppressMessages(library(foreach))
 
 shinyUI(pageWithSidebar(
   

@@ -61,9 +61,6 @@ shinyServer(function(input, output) {
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
   output$map <- renderPlot({
-    ##Center Map on Chicago
-    map.center <- geocode("Chicago,IL", messaging = FALSE)  #output = c('lon','lat')
-    colnames(map.center) <- c("lon","lat")
     
     ##Creates smaller database based on crime type
     crimebydate <- subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
@@ -74,7 +71,9 @@ shinyServer(function(input, output) {
     ##Maybe map with another source - get google map
     ##SHmap <- qmap(c(lon=map.center$lon, lat=map.center$lat), source="google", zoom=12)
  
+    #Map Center
     map.center = geocode(input$center, messaging = FALSE)
+    
     temp.color <- "color"
     if (input$bw) {temp.color <- "bw"}
     temp.scale <- 1
