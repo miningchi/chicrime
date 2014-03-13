@@ -1,16 +1,16 @@
-library(shiny)
-library(ggplot2)
-library(ggmap)
-library(RJSONIO)
-library(png)
-library(grid)
-library(RCurl)
-library(plyr)
-library(markdown)
-library(rCharts)
-library(parallel)
-library(xts)
-library(stringr)
+suppressMessages(library(shiny))
+suppressMessages(library(ggplot2))
+suppressMessages(library(ggmap))
+suppressMessages(library(RJSONIO))
+suppressMessages(library(png))
+suppressMessages(library(grid))
+suppressMessages(library(RCurl))
+suppressMessages(library(plyr))
+suppressMessages(library(markdown))
+suppressMessages(library(rCharts))
+suppressMessages(library(parallel))
+suppressMessages(library(xts))
+suppressMessages(library(stringr))
 
 ## Define server logic required to summarize and view the selected dataset
 shinyServer(function(input, output) {
@@ -24,8 +24,8 @@ shinyServer(function(input, output) {
   load(file = "./data/crimestest.rda", envir = .GlobalEnv)
   
   #Need to figure this out
-  crimebydate <- reactive({subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d"))) })
-  crimetypedatabase <- reactive({subset(crimebydate, Primary.Type == input$crimetype)})
+  #crimebydate <- reactive({subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d"))) })
+  #crimetypedatabase <- reactive({subset(crimebydate, Primary.Type == input$crimetype)})
 
   ## Get Geocode  DELETE
   map.geocode <- reactive({
@@ -40,7 +40,7 @@ shinyServer(function(input, output) {
       
     ## Output
     df
-    crimetypedatabase
+    #crimetypedatabase
    
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## Output 1 - Data Table
@@ -52,8 +52,6 @@ shinyServer(function(input, output) {
     ##Creates smaller database based on crime type
     crimetypedatabase <- subset(crimebydate, Primary.Type == input$crimetype)
    # crimetypedatabase$PosixDate <- as.POSIXct(strptime(crimetypedatabase$Date, format="%m/%d/%Y %H:%M"))
-    print (input$crimetype)
-  ##crimetypedatabase
     crimetypedatabase
     
   }, options = list(aLengthMenu = c(10, 25, 50, 100, 1000), iDisplayLength = 10))
@@ -64,7 +62,7 @@ shinyServer(function(input, output) {
  
   output$map <- renderPlot({
     ##Center Map on Chicago
-    map.center <- geocode("Chicago,IL")
+    map.center <- geocode("Chicago,IL", messaging = FALSE)  #output = c('lon','lat')
     colnames(map.center) <- c("lon","lat")
     
     ##Creates smaller database based on crime type
@@ -75,8 +73,8 @@ shinyServer(function(input, output) {
     ##Need to update to allow for other types of maps
     ##Maybe map with another source - get google map
     ##SHmap <- qmap(c(lon=map.center$lon, lat=map.center$lat), source="google", zoom=12)
-   
-    map.center = geocode(input$center)
+ 
+    map.center = geocode(input$center, messaging = FALSE)
     temp.color <- "color"
     if (input$bw) {temp.color <- "bw"}
     temp.scale <- 1
@@ -88,7 +86,8 @@ shinyServer(function(input, output) {
      # markers = map.center,
       zoom = input$zoom,            ## 14 is just about right for a 1-mile radius
       color = temp.color,   ## "color" or "bw" (black & white)
-      scale = temp.scale,   ## Set it to 2 for high resolution output
+      scale = temp.scale,  ## Set it to 2 for high resolution output
+      messaging = FALSE,
       # other settings that are not used at the moment
       # language = "en-EN" Ref: https://spreadsheets.google.com/spreadsheet/pub?key=0Ah0xU81penP1cDlwZHdzYWkyaERNc0xrWHNvTTA1S1E&gid=1
       # style              Ref: https://developers.google.com/maps/documentation/staticmaps/#StyledMapElements
@@ -96,11 +95,12 @@ shinyServer(function(input, output) {
     
     ## Convert the base map into a ggplot object
     ## All added Cartesian coordinates to enable more geom options later on
-    map.base <- ggmap(map.base, extend = "panel") + coord_cartesian() + coord_fixed(ratio = 1.5)
+    map.base <- ggmap(map.base, extend = "panel", messaging = FALSE) + coord_cartesian() + coord_fixed(ratio = 1.5)
  
     ## add crime points
  p <- map.base + geom_point(aes(x=Longitude, y=Latitude), colour="red", size = 4, na.rm=TRUE, data=crimetypedatabase)
-    print(p)
+  
+ print(p)
   }, width = 1280, height = 1280)
   
   ###### TRENDS ###########
