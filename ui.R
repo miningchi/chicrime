@@ -86,7 +86,7 @@ shinyUI(pageWithSidebar(
       #tabPanel("Sandbox (rCharts)", showOutput("myChart", "nvd3")),
       #tabPanel("Sandbox", includeMarkdown("docs/sandbox.md")),
       tabPanel("Data", dataTableOutput("datatable")),
-      tabPanel("Crime Map", plotOutput("map")),
+      tabPanel("Crime Map", verbatimTextOutput("mapheader"), plotOutput("map",height = 600, width = 600)),
       tabPanel("Trends", plotOutput("trends1")),
       tabPanel("To Do", includeMarkdown("docs/To_do.md")),
       tabPanel("Changes", includeMarkdown("docs/changes.md"))

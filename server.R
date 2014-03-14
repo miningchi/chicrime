@@ -63,6 +63,8 @@ shinyServer(function(input, output) {
   ## Output 2 - Map
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
+  output$mapheader <- renderPrint ("Does this work")
+  
   output$map <- renderPlot({
     
     ##Creates smaller database based on crime type
@@ -103,7 +105,8 @@ shinyServer(function(input, output) {
  p <- map.base + geom_point(aes(x=Longitude, y=Latitude), colour="red", size = 4, na.rm=TRUE, data=crimetypedatabase)
   
  print(p)
-  }, width = 1280, height = 1280)
+  })
+ #, width = 1800, height = 1800)
   
   ###### TRENDS ###########
     output$trends1 <- renderPlot({
@@ -164,15 +167,8 @@ g <- gtable_add_grob(g, ax, pp$t, length(g$widths) - 1, pp$b)
 # draw it
 grid.draw(g)
 
-
-
-
-
-
-
-
 #print(data3)
-  }, width = 800, height = 800)
+  }, width = 1280, height = 1280)
   
   })
     
