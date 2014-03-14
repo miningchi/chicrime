@@ -134,8 +134,6 @@ shinyServer(function(input, output) {
  data3 <- data2 +geom_line(data=weatherxts,aes(dates, temperature, color="Second line"))
  
 #New approach to get two Y lines:
-
-
 grid.newpage()
 
 # two plots
