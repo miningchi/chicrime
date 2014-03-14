@@ -9,10 +9,10 @@ suppressMessages(library(plyr))
 suppressMessages(library(markdown))
 suppressMessages(library(rCharts))
 suppressMessages(library(parallel))
-suppressMessages(library(xts))
-suppressMessages(library(stringr))
-suppressMessages(library(gtable))
-suppressMessages(library(grid))
+suppressMessages(library(xts)) #added this for trends
+suppressMessages(library(stringr)) #added this for time, not sure if still needed
+suppressMessages(library(gtable)) #added this for trends
+suppressMessages(library(grid)) #added this for trends
 
 
 ## Define server logic required to summarize and view the selected dataset
