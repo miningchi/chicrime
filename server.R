@@ -24,7 +24,8 @@ shinyServer(function(input, output) {
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
   load(file = "./data/weather.rda", envir = .GlobalEnv)
-  load(file = "./data/crimestest.rda", envir = .GlobalEnv)
+  #load(file = "./data/crimestest.rda", envir = .GlobalEnv)
+  load(file = "./data/crimesfull.rda", envir = .GlobalEnv)
   
   #Need to figure this out
   #crimebydate <- reactive({subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d"))) })
