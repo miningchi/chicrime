@@ -11,6 +11,9 @@ suppressMessages(library(rCharts))
 suppressMessages(library(parallel))
 suppressMessages(library(xts))
 suppressMessages(library(stringr))
+suppressMessages(library(gtable))
+suppressMessages(library(grid))
+
 
 ## Define server logic required to summarize and view the selected dataset
 shinyServer(function(input, output) {
@@ -129,9 +132,6 @@ shinyServer(function(input, output) {
  
 #New approach to get two Y lines:
 
-library(ggplot2)
-library(gtable)
-library(grid)
 
 grid.newpage()
 
