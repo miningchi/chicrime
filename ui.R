@@ -81,6 +81,7 @@ shinyUI(pageWithSidebar(
       tabPanel("Data", dataTableOutput("datatable")),
       tabPanel("Crime Map", verbatimTextOutput("mapheader"), plotOutput("map",height = 600, width = 600)),
       tabPanel("Trends", plotOutput("trends1")),
+      tabPanel("Analysis", plotOutput("analysis")),
       tabPanel("To Do", includeMarkdown("docs/To_do.md")),
       tabPanel("Changes", includeMarkdown("docs/changes.md"))
     ) 

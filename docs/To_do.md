@@ -3,6 +3,7 @@ To Do List
 List of Tasks to be completed:
 - Clean UI:
   - Move Map UI to Map Tab - for example, https://groups.google.com/forum/#!topic/shiny-discuss/hZNaJ_q1VbU
+  http://www.showmeshiny.com/intel-g3plot-api/
   - Remove Unnecessary entries
 - Change Trends to Weather
 - Add all types of crime input

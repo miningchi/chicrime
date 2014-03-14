@@ -121,6 +121,7 @@ shinyServer(function(input, output) {
     crimebytime <- apply.monthly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})
     crimebytime<-data.frame(index(crimebytime),coredata(crimebytime[,1]))
     colnames(crimebytime)<-c("dates","crime")
+  print(crimebytime)
   
  ##ADD WEATHER
  weatherdata <- subset(weatherdata, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
@@ -168,5 +169,18 @@ grid.draw(g)
 #print(data3)
   }, width = 1280, height = 1280)
   
+###ANALYSIS 
+
+output$analysis <- renderPlot({
+  crimebydate <- subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
+  crimetypefreq <- crimebydate[c(6)]
+  b <- table(crimetypefreq)
+  
+print ("working")
+
+print (b)
+plot(b)
+    })
+
   })
     
