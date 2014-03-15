@@ -13,8 +13,9 @@ suppressMessages(library(xts)) #added this for trends
 suppressMessages(library(stringr)) #added this for time, not sure if still needed
 suppressMessages(library(gtable)) #added this for trends
 suppressMessages(library(grid)) #added this for trends
-
-#test#
+load(file = "./data/weather.rda")
+#load(file = "./data/crimestest.rda")
+load(file = "./data/crimesfull.rda")
 
 ## Define server logic required to summarize and view the selected dataset
 shinyServer(function(input, output) {
@@ -24,42 +25,25 @@ shinyServer(function(input, output) {
   ## Reactive Functions
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
-  load(file = "./data/weather.rda", envir = .GlobalEnv)
-  #load(file = "./data/crimestest.rda", envir = .GlobalEnv)
-  load(file = "./data/crimesfull.rda", envir = .GlobalEnv)
+  datesubset <- reactive({
+          subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
+                   })
   
-  #Need to figure this out
-  #crimebydate <- reactive({subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d"))) })
-  #crimetypedatabase <- reactive({subset(crimebydate, Primary.Type == input$crimetype)})
+  datetypesubset <- reactive({
+                 tempdate   <- subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
+                 tempdatetype <- subset(tempdate, Primary.Type == input$crimetype)
+                 return (tempdatetype)
+                 })  
 
-  ## Get Geocode  DELETE
-  map.geocode <- reactive({
-    suppressMessages(data.frame(geocode = geocode(input$poi)))
-  })
-  
-  ## Define Period DELETE
-  map.period <- reactive({
-    format(seq(input$start, length=input$months, by="months"), "%Y-%m")
-  })
-
-      
-    ## Output
-    df
-    #crimetypedatabase
-   
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## Output 1 - Data Table
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 
+
   output$datatable <- renderDataTable({
-    #Subsets by date
-    crimebydate <- subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
-    ##Creates smaller database based on crime type
-    crimetypedatabase <- subset(crimebydate, Primary.Type == input$crimetype)
-   # crimetypedatabase$PosixDate <- as.POSIXct(strptime(crimetypedatabase$Date, format="%m/%d/%Y %H:%M"))
-    crimetypedatabase
-    
-  }, options = list(aLengthMenu = c(10, 25, 50, 100, 1000), iDisplayLength = 10))
+   
+    datetypesubset() 
+  
+    }, options = list(aLengthMenu = c(10, 25, 50, 100, 1000), iDisplayLength = 10))
   
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## Output 2 - Map
@@ -68,16 +52,7 @@ shinyServer(function(input, output) {
   output$mapheader <- renderPrint ("Does this work")
   
   output$map <- renderPlot({
-    
-    ##Creates smaller database based on crime type
-    crimebydate <- subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
-    crimetypedatabase <- subset(crimebydate, Primary.Type == input$crimetype)
-    
-    ##Plots values
-    ##Need to update to allow for other types of maps
-    ##Maybe map with another source - get google map
-    ##SHmap <- qmap(c(lon=map.center$lon, lat=map.center$lat), source="google", zoom=12)
- 
+     
     #Map Center
     map.center = geocode(input$center, messaging = FALSE)
     
@@ -104,6 +79,7 @@ shinyServer(function(input, output) {
     map.base <- ggmap(map.base, extend = "panel", messaging = FALSE) + coord_cartesian() + coord_fixed(ratio = 1.5)
  
     ## add crime points
+    crimetypedatabase <- datetypesubset() 
  p <- map.base + geom_point(aes(x=Longitude, y=Latitude), colour="red", size = 4, na.rm=TRUE, data=crimetypedatabase)
   
  print(p)
@@ -113,9 +89,8 @@ shinyServer(function(input, output) {
   ###### TRENDS ###########
     output$trends1 <- renderPlot({
     
-    crimebydate <- subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
-    crimetypedatabase <- subset(crimebydate, Primary.Type == input$crimetype)
-
+    crimetypedatabase <- datetypesubset()   
+   
   #Convert to XTS for analysis Columns should be Primary Type and PosixData
     df.xts <- xts(x = crimetypedatabase[, c(6,23)], order.by = crimetypedatabase[, "PosixDate"])
     #dyearly <- apply.yearly(df.xts, function(d) {print(d)}) # Troubleshooting
@@ -174,7 +149,7 @@ grid.draw(g)
 ###ANALYSIS 
 
 output$analysis <- renderPlot({
-  crimebydate <- subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
+  crimebydate <- datesubset ()
   crimetypefreq <- crimebydate[c(6)]
   b <- table(crimetypefreq)
   
