@@ -1,10 +1,9 @@
-+  Introduction
-+	========================================================
-+	
-+	This <a href="http://shinyapps.io?kid=2B7XZ" target="_blank">ShinyApp</a> allows you to download and visualise crime data in England, Wales & Northern Ireland from <a href="http://data.police.uk" target="_blank">data.police.uk</a>. The data is made available under the <a href="http://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/" target="_blank">Open Government License</a>. For more information, see my original blog posts <a href="http://bit.ly/bib_crimemap_blog1" target="_blank">here</a>, <a href="http://bit.ly/bib_crimemap_blog2" target="_blank">here</a> and <a href="http://bit.ly/bib_crimemap_blog3" target="_blank">here</a>.
-+	
-+	## Basic Usage
-+	
-+	Simply enter a <b>location</b> of your choice (e.g. Oxford), choose the <b>first month</b> for data collection (e.g. Jan 2012), decide <b>how many months</b> of data you need and then click <b>"Update"</b>. There are more settings available for you to customise the plots. Scroll down and <b>try them out!</b>.
- 	 No newline at end of file
+This site allows you to visualize and analyze Chicago's crime statistics. You can look at the information on crimes, visualize it on a map, see descriptive statitics about crime, examine how crime is correlated, and even see the relationship between weather and crime.
+
+To use the site, simply enter a crime type of your choice (e.g. Theft), choose the for date range for collection and then click "Update". When using the maps, you can recenter by map by choosing a different location, either by city name or zip code.  You can also zoom as well as change the type of map.
+
+The site is designed for people to learn and explore relationships in crime data. All the data and and code for this site are all freely available (see credits). 
+
+If you are interested in data visualization, statistics, or crime - then join us!  We are a colloborative team always looking for more assistance. A list of our current team members is also shown on the credits page.
+
  	

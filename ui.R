@@ -11,7 +11,7 @@ shinyUI(pageWithSidebar(
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## Application title
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  headerPanel("Chicago Crime Data Visualisation"),
+  headerPanel("MiningChi - Chicago Crime Data Visualisation"),
   
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## Sidebar Panel
@@ -48,22 +48,6 @@ shinyUI(pageWithSidebar(
       checkboxInput("bw", "Black & White?", FALSE),
       sliderInput("zoom", "Zoom Level (Recommended - 14):", 
                   min = 9, max = 20, step = 1, value = 12)
-    ),
-  
-    wellPanel(
-      helpText(HTML("<b>ABOUT US</b>")),
-      HTML('Rajiv Shah & Chris Pulec'),
-      HTML('<br>'),
-      HTML('Big Data Guys'),
-      HTML('<br>'),
-      HTML('<a href="http://www.rajivshah.com" target="_blank">About Rajiv</a>, ')
-    ),
-    
-    wellPanel(
-      helpText(HTML("<b>CREDITS</b>")),
-      HTML('<a href="https://blenditbayes.shinyapps.io/crimemap/" target=" blank">Crime Data Visualization</a>,  '),
-      HTML('<br>'),
-      HTML('<a href="https://data.cityofchicago.org" target=" blank">Chicago Crime Data Source</a>,  ')
     )
     
   ),
@@ -80,10 +64,9 @@ shinyUI(pageWithSidebar(
       #tabPanel("Sandbox", includeMarkdown("docs/sandbox.md")),
       tabPanel("Data", dataTableOutput("datatable")),
       tabPanel("Crime Map", verbatimTextOutput("mapheader"), plotOutput("map",height = 600, width = 600)),
-      tabPanel("Trends", plotOutput("trends1")),
       tabPanel("Analysis", plotOutput("analysis")),
-      tabPanel("To Do", includeMarkdown("docs/To_do.md")),
-      tabPanel("Changes", includeMarkdown("docs/changes.md"))
+      tabPanel("Weather", plotOutput("weather")),
+      tabPanel("Credits", includeMarkdown("docs/credits.md"))
     ) 
   )
   

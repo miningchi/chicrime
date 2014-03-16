@@ -86,8 +86,8 @@ shinyServer(function(input, output) {
   })
  #, width = 1800, height = 1800)
   
-  ###### TRENDS ###########
-    output$trends1 <- renderPlot({
+  ###### Weather variable ###########
+    output$weather <- renderPlot({
     
     crimetypedatabase <- datetypesubset()   
    
