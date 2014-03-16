@@ -14,8 +14,8 @@ suppressMessages(library(stringr)) #added this for time, not sure if still neede
 suppressMessages(library(gtable)) #added this for trends
 suppressMessages(library(grid)) #added this for trends
 load(file = "./data/weather.rda")
-#load(file = "./data/crimestest.rda")
-load(file = "./data/crimesfull.rda")
+load(file = "./data/crimestest.rda")
+#load(file = "./data/crimesfull.rda")
 
 ## Define server logic required to summarize and view the selected dataset
 shinyServer(function(input, output) {
@@ -92,7 +92,7 @@ shinyServer(function(input, output) {
     crimetypedatabase <- datetypesubset()   
    
   #Convert to XTS for analysis Columns should be Primary Type and PosixData
-    df.xts <- xts(x = crimetypedatabase[, c(6,23)], order.by = crimetypedatabase[, "PosixDate"])
+    df.xts <- xts(x = crimetypedatabase[, c("Primary.Type","PosixDate")], order.by = crimetypedatabase[, "PosixDate"])
     #dyearly <- apply.yearly(df.xts, function(d) {print(d)}) # Troubleshooting
   #sum by crime type - NEED to allow different periods
     crimebytime <- apply.monthly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})
@@ -150,7 +150,7 @@ grid.draw(g)
 
 output$analysis <- renderPlot({
   crimebydate <- datesubset ()
-  crimetypefreq <- crimebydate[c(6)]
+  crimetypefreq <- crimebydate[c("Primary.Type")]
   b <- table(crimetypefreq)
   
 print ("working")
