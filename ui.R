@@ -1,7 +1,4 @@
 suppressMessages(library(shiny))
-# library(shinyIncubator)
-# library(ggplot2)
-# library(ggmap)
 suppressMessages(library(rCharts))
 suppressMessages(library(doSNOW))
 suppressMessages(library(foreach))
@@ -59,9 +56,6 @@ shinyUI(pageWithSidebar(
   mainPanel(
     tabsetPanel(
       tabPanel("Introduction", includeMarkdown("docs/introduction.md")),
-      #tabPanel("LondonR Demo", includeMarkdown("docs/londonr.md")),
-      #tabPanel("Sandbox (rCharts)", showOutput("myChart", "nvd3")),
-      #tabPanel("Sandbox", includeMarkdown("docs/sandbox.md")),
       tabPanel("Data", dataTableOutput("datatable")),
       tabPanel("Crime Map", verbatimTextOutput("mapheader"), plotOutput("map",height = 600, width = 600)),
       tabPanel("Analysis", plotOutput("analysis")),
