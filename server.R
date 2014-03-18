@@ -27,7 +27,7 @@ shinyServer(function(input, output) {
   
   datesubset <- reactive({
           subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
-                   })
+          })
   
   datetypesubset <- reactive({
                  tempdate   <- subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
@@ -50,9 +50,18 @@ shinyServer(function(input, output) {
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
   output$mapheader <- renderPrint ("Does this work")
+  output$maptitle <- renderUI({helpText(HTML("<b>MAP SETTINGS</b>"))})
+  output$mapcenter <- renderUI({textInput("center", "Enter a Location to Center Map, such as city or zipcode:", "Chicago")})
+  output$mapfacet <- renderUI({selectInput("facet", "Choose Facet Type:", choice = c("none","type", "month", "category"))})
+  output$maptype <- renderUI({selectInput("type", "Choose Google Map Type:", choice = c("roadmap", "satellite", "hybrid","terrain"))})
+  output$mapres <- renderUI({checkboxInput("res", "High Resolution?", FALSE)})
+  output$mapbw <- renderUI({checkboxInput("bw", "Black & White?", FALSE)})
+  output$mapzoom <- renderUI({sliderInput("zoom", "Zoom Level (Recommended - 14):", min = 9, max = 20, step = 1, value = 12)})
   
   output$map <- renderPlot({
      
+ 
+    
     #Map Center
     map.center = geocode(input$center, messaging = FALSE)
     
@@ -60,7 +69,7 @@ shinyServer(function(input, output) {
     if (input$bw) {temp.color <- "bw"}
     temp.scale <- 1
     if (input$res) {temp.scale <- 2}
-    
+   
     map.base <- get_googlemap(
       as.matrix(map.center),
       maptype = input$type, ## Map type as defined above (roadmap, terrain, satellite, hybrid)
@@ -69,9 +78,6 @@ shinyServer(function(input, output) {
       color = temp.color,   ## "color" or "bw" (black & white)
       scale = temp.scale,  ## Set it to 2 for high resolution output
       messaging = FALSE,
-      # other settings that are not used at the moment
-      # language = "en-EN" Ref: https://spreadsheets.google.com/spreadsheet/pub?key=0Ah0xU81penP1cDlwZHdzYWkyaERNc0xrWHNvTTA1S1E&gid=1
-      # style              Ref: https://developers.google.com/maps/documentation/staticmaps/#StyledMapElements
     )
     
     ## Convert the base map into a ggplot object
@@ -86,6 +92,12 @@ shinyServer(function(input, output) {
   })
  #, width = 1800, height = 1800)
   
+ 
+
+ 
+ 
+ 
+ 
   ###### Weather variable ###########
     output$weather <- renderPlot({
     
@@ -94,6 +106,7 @@ shinyServer(function(input, output) {
   #Convert to XTS for analysis Columns should be Primary Type and PosixData
     df.xts <- xts(x = crimetypedatabase[, c("Primary.Type","PosixDate")], order.by = crimetypedatabase[, "PosixDate"])
     #dyearly <- apply.yearly(df.xts, function(d) {print(d)}) # Troubleshooting
+  
   #sum by crime type - NEED to allow different periods
     crimebytime <- apply.monthly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})
     crimebytime<-data.frame(index(crimebytime),coredata(crimebytime[,1]))
