@@ -49,9 +49,8 @@ shinyServer(function(input, output) {
   ## Output 2 - Map
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
-  output$mapheader <- renderPrint ("Does this work")
   output$maptitle <- renderUI({helpText(HTML("<b>MAP SETTINGS</b>"))})
-  output$mapcenter <- renderUI({textInput("center", "Enter a Location to Center Map, such as city or zipcode:", "Chicago")})
+  output$mapcenter <- renderUI({textInput("center", "Enter a Location to Center Map, such as city or zipcode, the click Update", "Chicago")})
   output$mapfacet <- renderUI({selectInput("facet", "Choose Facet Type:", choice = c("none","type", "month", "category"))})
   output$maptype <- renderUI({selectInput("type", "Choose Google Map Type:", choice = c("roadmap", "satellite", "hybrid","terrain"))})
   output$mapres <- renderUI({checkboxInput("res", "High Resolution?", FALSE)})
@@ -60,21 +59,29 @@ shinyServer(function(input, output) {
   
   output$map <- renderPlot({
      
- 
+    # Set Defaults for when Map starts
+    if (is.null(input$center)) {map.center <- geocode("Chicago")}
+      else {map.center = geocode(input$center)}
     
-    #Map Center
-    map.center = geocode(input$center, messaging = FALSE)
+    if (is.null(input$bw)) {temp.color <- "bw"}
+      else {
+         temp.color <- "color"
+        if (input$bw) {temp.color <- "bw"}}
+      
+    if (is.null(input$res)) {temp.scale <- 2}
+      else {
+       temp.scale <- 1
+        if (input$res) {temp.scale <- 2}}
     
-    temp.color <- "color"
-    if (input$bw) {temp.color <- "bw"}
-    temp.scale <- 1
-    if (input$res) {temp.scale <- 2}
-   
+    if (is.null(input$zoom)) {temp.zoom <- 14}
+      else {temp.zoom <- input$zoom }
+    
+   #Get Base Map
     map.base <- get_googlemap(
       as.matrix(map.center),
       maptype = input$type, ## Map type as defined above (roadmap, terrain, satellite, hybrid)
      # markers = map.center,
-      zoom = input$zoom,            ## 14 is just about right for a 1-mile radius
+      zoom = temp.zoom,            ## 14 is just about right for a 1-mile radius
       color = temp.color,   ## "color" or "bw" (black & white)
       scale = temp.scale,  ## Set it to 2 for high resolution output
       messaging = FALSE,
@@ -88,7 +95,7 @@ shinyServer(function(input, output) {
     crimetypedatabase <- datetypesubset() 
  p <- map.base + geom_point(aes(x=Longitude, y=Latitude), colour="red", size = 4, na.rm=TRUE, data=crimetypedatabase)
   
- print(p)
+ plot(p)
   })
  #, width = 1800, height = 1800)
   

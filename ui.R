@@ -34,19 +34,7 @@ shinyUI(pageWithSidebar(
       ##Need some validation that enddate is after start date
       
       helpText("MM-DD-YEAR as Date Format")      
-    ),
-    
-    wellPanel(
-#       helpText(HTML("<b>MAP SETTINGS</b>")),
-#   textInput("center", "Enter a Location to Center Map, such as city or zipcode:", "Chicago"),
-#       selectInput("facet", "Choose Facet Type:", choice = c("none","type", "month", "category")),
-#       selectInput("type", "Choose Google Map Type:", choice = c("roadmap", "satellite", "hybrid","terrain")),    
-#       checkboxInput("res", "High Resolution?", FALSE),
-#   checkboxInput("bw", "Black & White?", FALSE)
-#       sliderInput("zoom", "Zoom Level (Recommended - 14):", 
-#                   min = 9, max = 20, step = 1, value = 12)
-#     
-      )
+    )
     
    ),
   
@@ -60,13 +48,13 @@ shinyUI(pageWithSidebar(
     tabsetPanel(
       tabPanel("Introduction", includeMarkdown("docs/introduction.md")),
       tabPanel("Data", dataTableOutput("datatable")),
-      tabPanel("Crime Map", verbatimTextOutput("mapheader"), uiOutput("mapcenter"), uiOutput("mapzoom"),
-               plotOutput("map",height = 600, width = 600), div(class="span1",uiOutput("mapfacet")),uiOutput("maptype"),uiOutput("mapres"),
-               div(class="row-fluid",uiOutput("mapbw"))),
+      tabPanel("Crime Map", uiOutput("mapcenter"), div(class="span4",uiOutput("mapzoom")),
+               div(class="span10",plotOutput("map",height=600,width=600)), div(class="span4",uiOutput("mapfacet")),div(class="span4",uiOutput("maptype")),div(class="span2",uiOutput("mapres")),
+               div(class="span2",uiOutput("mapbw"))),
       tabPanel("Analysis", plotOutput("analysis")),
       tabPanel("Weather", plotOutput("weather")),
       tabPanel("Credits", includeMarkdown("docs/credits.md"))
     ) 
   )
-  
+
 ))
