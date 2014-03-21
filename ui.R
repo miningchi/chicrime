@@ -23,7 +23,13 @@ shinyUI(pageWithSidebar(
     
     wellPanel(
       helpText(HTML("<b>BASIC SETTINGS</b>")),
-      selectInput("crimetype", "Choose Crime Type:", choice = c("THEFT", "BATTERY", "BURGLARY","ROBBERY")),
+      selectInput("crimetype", "Choose Crime Type:", choice = c("THEFT","CRIM SEXUAL ASSAULT","BURGLARY","BATTERY","ROBBERY",
+                                            "INTERFERENCE WITH PUBLIC OFFICER","DECEPTIVE PRACTICE","ARSON","CRIMINAL DAMAGE",
+                                            "ASSAULT","NARCOTICS","CRIMINAL TRESPASS","OTHER OFFENSE","PUBLIC PEACE VIOLATION",
+                                            "SEX OFFENSE","OFFENSE INVOLVING CHILDREN","PROSTITUTION","WEAPONS VIOLATION","KIDNAPPING",
+                                            "LIQUOR LAW VIOLATION","HOMICIDE","STALKING","NON-CRIMINAL","INTIMIDATION","OBSCENITY",
+                                            "PUBLIC INDECENCY","OTHER NARCOTIC VIOLATION","GAMBLING","OTHER OFFENSE ","NON - CRIMINAL",
+                                            "NON-CRIMINAL (SUBJECT SPECIFIED)","INTERFERE WITH PUBLIC OFFICER","OFFENSES INVOLVING CHILDREN","RITUALISM")),
       helpText("Examples: BATTERY, THEFT etc."),
       
       dateInput("startdate", "Start Date of Data Collection:", value = "2000-01-01", format = "mm-dd-yyyy",

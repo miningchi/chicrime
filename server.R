@@ -14,8 +14,8 @@ suppressMessages(library(stringr)) #added this for time, not sure if still neede
 suppressMessages(library(gtable)) #added this for trends
 suppressMessages(library(grid)) #added this for trends
 load(file = "./data/weather.rda")
-load(file = "./data/crimestest.rda")
-#load(file = "./data/crimesfull.rda")
+#load(file = "./data/crimestest.rda")
+load(file = "./data/crimesfull.rda")
 
 ## Define server logic required to summarize and view the selected dataset
 shinyServer(function(input, output) {
@@ -63,7 +63,7 @@ shinyServer(function(input, output) {
     if (is.null(input$center)) {map.center <- geocode("Chicago")}
       else {map.center = geocode(input$center)}
     
-    if (is.null(input$bw)) {temp.color <- "bw"}
+    if (is.null(input$bw)) {temp.color <- "color"}
       else {
          temp.color <- "color"
         if (input$bw) {temp.color <- "bw"}}
@@ -127,9 +127,9 @@ shinyServer(function(input, output) {
  colnames(weatherxts)<-c("dates","temperature")
 
 # Plotting
- data<-ggplot(crimebytime,aes(dates,crime)) + xlab(NULL) + ylab("crime") + scale_y_log10() 
- data2 <- data +geom_line(aes(color="First line"))+ ggtitle("Crime Trends")
- data3 <- data2 +geom_line(data=weatherxts,aes(dates, temperature, color="Second line"))
+ #data<-ggplot(crimebytime,aes(dates,crime)) + xlab(NULL) + ylab("crime") + scale_y_log10() 
+ #data2 <- data +geom_line(aes(color="red"))+ ggtitle("Crime Trends")
+ #data3 <- data2 +geom_line(data=weatherxts,aes(dates, temperature, color="blue"))
  
 #New approach to get two Y lines:
 grid.newpage()
@@ -137,8 +137,8 @@ grid.newpage()
 # two plots
 # from http://rpubs.com/kohske/dual_axis_in_ggplot2
 
-p1 <-ggplot(crimebytime,aes(dates,crime)) + geom_line(aes(color="red")) + theme_bw()
-p2 <-ggplot(weatherxts,aes(dates,temperature)) + geom_line(aes(color="blue")) + theme_bw() %+replace% 
+p1 <-ggplot(crimebytime,aes(dates,crime)) + geom_line(colour="red") + theme_bw()
+p2 <-ggplot(weatherxts,aes(dates,temperature)) + geom_line(colour="blue") + theme_bw() %+replace% 
   theme(panel.background = element_rect(fill = NA))
 
 # extract gtable
