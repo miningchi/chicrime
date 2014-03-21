@@ -122,6 +122,8 @@ shinyServer(function(input, output) {
   
  ##ADD WEATHER
  weatherdata <- subset(weatherdata, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
+ #Adding time series smoothing
+ #weatherdata <- SMA(weatherdata,n=3)
  weatherxts <- xts(weatherdata$TempFahr,weatherdata$PosixDate)
  weatherxts<-data.frame(index(weatherxts),coredata(weatherxts[,1]))
  colnames(weatherxts)<-c("dates","temperature")
