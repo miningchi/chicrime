@@ -59,6 +59,12 @@ shinyUI(pageWithSidebar(
                div(class="span2",uiOutput("mapbw"))),
       tabPanel("Analysis", plotOutput("analysis")),
       tabPanel("Weather", div(class="span4",uiOutput("weatherperiod")), plotOutput("weather")),
+      tabPanel("Crime Heat Map", uiOutput("hmapcenter"), div(class="span6",uiOutput("hmapzoom")),
+               div(class="span8", plotOutput("heatmap",height=600,width=600)),div(class="span4",uiOutput("hmaptype")),div(class="span2",uiOutput("hmapres")),
+               div(class="span2",uiOutput("hmapbw")), div(class="span2",uiOutput("halpharange")), div(class="span2",uiOutput("hbins")),
+               div(class="span2",uiOutput("hboundwidth")), div(class="span2",uiOutput("hboundcolor")), div(class="span2",uiOutput("hlow")),
+               div(class="span2",uiOutput("hhigh"))
+               ),
       tabPanel("Credits", includeMarkdown("docs/credits.md"))
     ) 
   )
