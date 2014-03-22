@@ -8,7 +8,7 @@ shinyUI(pageWithSidebar(
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## Application title
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  headerPanel("MiningChi - Chicago Crime Data Visualisation"),
+  headerPanel("MiningChi - Chicago Crime Data Visualization"),
   
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## Sidebar Panel
@@ -54,11 +54,11 @@ shinyUI(pageWithSidebar(
     tabsetPanel(
       tabPanel("Introduction", includeMarkdown("docs/introduction.md")),
       tabPanel("Data", dataTableOutput("datatable")),
-      tabPanel("Crime Map", uiOutput("mapcenter"), div(class="span4",uiOutput("mapzoom")),
-               div(class="span10",plotOutput("map",height=600,width=600)), div(class="span4",uiOutput("mapfacet")),div(class="span4",uiOutput("maptype")),div(class="span2",uiOutput("mapres")),
+      tabPanel("Crime Map", uiOutput("mapcenter"), div(class="span6",uiOutput("mapzoom")),
+               div(class="span8", plotOutput("map",height=600,width=600)),div(class="span4",uiOutput("maptype")),div(class="span2",uiOutput("mapres")),
                div(class="span2",uiOutput("mapbw"))),
       tabPanel("Analysis", plotOutput("analysis")),
-      tabPanel("Weather", plotOutput("weather")),
+      tabPanel("Weather", div(class="span4",uiOutput("weatherperiod")), plotOutput("weather")),
       tabPanel("Credits", includeMarkdown("docs/credits.md"))
     ) 
   )

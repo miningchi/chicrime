@@ -20,7 +20,6 @@ load(file = "./data/crimesfull.rda")
 ## Define server logic required to summarize and view the selected dataset
 shinyServer(function(input, output) {
   
-  
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## Reactive Functions
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -51,11 +50,10 @@ shinyServer(function(input, output) {
  
   output$maptitle <- renderUI({helpText(HTML("<b>MAP SETTINGS</b>"))})
   output$mapcenter <- renderUI({textInput("center", "Enter a Location to Center Map, such as city or zipcode, the click Update", "Chicago")})
-  output$mapfacet <- renderUI({selectInput("facet", "Choose Facet Type:", choice = c("none","type", "month", "category"))})
   output$maptype <- renderUI({selectInput("type", "Choose Google Map Type:", choice = c("roadmap", "satellite", "hybrid","terrain"))})
   output$mapres <- renderUI({checkboxInput("res", "High Resolution?", FALSE)})
   output$mapbw <- renderUI({checkboxInput("bw", "Black & White?", FALSE)})
-  output$mapzoom <- renderUI({sliderInput("zoom", "Zoom Level (Recommended - 14):", min = 9, max = 20, step = 1, value = 12)})
+  output$mapzoom <- renderUI({sliderInput("zoom", "Zoom Level (Recommended - 14):", min = 9, max = 20, step = 1, value = 14)})
   
   output$map <- renderPlot({
      
@@ -100,14 +98,11 @@ shinyServer(function(input, output) {
  #, width = 1800, height = 1800)
   
  
-
- 
- 
- 
- 
   ###### Weather variable ###########
-    output$weather <- renderPlot({
-    
+   
+ output$weatherperiod <- renderUI({selectInput("wperiod", "Choose Period to Analyze:", choice = c("yearly", "monthly","weekly", "daily"))})
+ 
+ output$weather <- renderPlot({  
     crimetypedatabase <- datetypesubset()   
    
   #Convert to XTS for analysis Columns should be Primary Type and PosixData
@@ -115,24 +110,25 @@ shinyServer(function(input, output) {
     #dyearly <- apply.yearly(df.xts, function(d) {print(d)}) # Troubleshooting
   
   #sum by crime type - NEED to allow different periods
-    crimebytime <- apply.monthly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})
-    crimebytime<-data.frame(index(crimebytime),coredata(crimebytime[,1]))
+  if (is.null(input$wperiod)) {temp.wperiod <- "yearly"}
+  else {temp.wperiod <- input$wperiod }
+  
+  if (temp.wperiod == "daily") {crimebytime <- apply.daily(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
+  if (temp.wperiod == "weekly") {crimebytime <- apply.weekly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
+  if (temp.wperiod == "monthly") {crimebytime <- apply.monthly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
+  if (temp.wperiod == "yearly") {crimebytime <- apply.yearly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
+    
+  crimebytime<-data.frame(index(crimebytime),coredata(crimebytime[,1]))
     colnames(crimebytime)<-c("dates","crime")
   print(crimebytime)
   
  ##ADD WEATHER
  weatherdata <- subset(weatherdata, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
- #Adding time series smoothing
- #weatherdata <- SMA(weatherdata,n=3)
+
  weatherxts <- xts(weatherdata$TempFahr,weatherdata$PosixDate)
  weatherxts<-data.frame(index(weatherxts),coredata(weatherxts[,1]))
  colnames(weatherxts)<-c("dates","temperature")
 
-# Plotting
- #data<-ggplot(crimebytime,aes(dates,crime)) + xlab(NULL) + ylab("crime") + scale_y_log10() 
- #data2 <- data +geom_line(aes(color="red"))+ ggtitle("Crime Trends")
- #data3 <- data2 +geom_line(data=weatherxts,aes(dates, temperature, color="blue"))
- 
 #New approach to get two Y lines:
 grid.newpage()
 
