@@ -65,6 +65,7 @@ shinyUI(pageWithSidebar(
                div(class="span2",uiOutput("hboundwidth")), div(class="span2",uiOutput("hboundcolor")), div(class="span2",uiOutput("hlow")),
                div(class="span2",uiOutput("hhigh"))
                ),
+      #tabPanel("Dendogram", uiOutput("dendo")),
       tabPanel("Credits", includeMarkdown("docs/credits.md"))
     ) 
   )

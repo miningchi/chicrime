@@ -14,8 +14,8 @@ suppressMessages(library(stringr)) #added this for time, not sure if still neede
 suppressMessages(library(gtable)) #added this for trends
 suppressMessages(library(grid)) #added this for trends
 load(file = "./data/weather.rda")
-#load(file = "./data/crimestest.rda")
-load(file = "./data/crimesfull.rda")
+load(file = "./data/crimestest.rda")
+#load(file = "./data/crimesfull.rda")
 
 ## Define server logic required to summarize and view the selected dataset
 shinyServer(function(input, output) {
@@ -300,7 +300,17 @@ output$heatmap <- renderPlot({
   plot(map.final)
   })
 
-
-
+###############################################
+#  DENDO
+###############################################
+output$dendo <- renderUI({
+  crimebydate <- datesubset()
+  df.xts <- xts(x = crimebydate[, c("Primary.Type","PosixDate")], order.by = crimebydate[, "PosixDate"])
+  colnames(df.xts)<-c("dates","crime")
+  d <- dist(as.matrix(df.xts))
+  print(d)
+  #hc <- hclust(d)
+ # print(hc)
+})
   })
     
