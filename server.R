@@ -12,7 +12,6 @@ suppressMessages(library(parallel))
 suppressMessages(library(xts)) #added this for trends
 suppressMessages(library(stringr)) #added this for time, not sure if still needed
 suppressMessages(library(gtable)) #added this for trends
-suppressMessages(library(grid)) #added this for trends
 load(file = "./data/weather.rda")
 load(file = "./data/crimestest.rda")
 #load(file = "./data/crimesfull.rda")
@@ -301,16 +300,60 @@ output$heatmap <- renderPlot({
   })
 
 ###############################################
-#  DENDO
+#  Traffic
 ###############################################
-output$dendo <- renderUI({
-  crimebydate <- datesubset()
-  df.xts <- xts(x = crimebydate[, c("Primary.Type","PosixDate")], order.by = crimebydate[, "PosixDate"])
-  colnames(df.xts)<-c("dates","crime")
-  d <- dist(as.matrix(df.xts))
-  print(d)
-  #hc <- hclust(d)
- # print(hc)
+
+output$tmaptitle <- renderUI({helpText(HTML("<b>MAP SETTINGS</b>"))})
+output$tmapcenter <- renderUI({textInput("center", "Enter a Location to Center Map, such as city or zipcode, the click Update", "Chicago")})
+output$tmaptype <- renderUI({selectInput("type", "Choose Google Map Type:", choice = c("roadmap", "satellite", "hybrid","terrain"))})
+output$tmapres <- renderUI({checkboxInput("res", "High Resolution?", FALSE)})
+output$tmapbw <- renderUI({checkboxInput("bw", "Black & White?", FALSE)})
+output$tmapzoom <- renderUI({sliderInput("zoom", "Zoom Level (Recommended - 14):", min = 9, max = 20, step = 1, value = 14)})
+
+output$tmap <- renderPlot({
+  print ("hi")
+  # Set Defaults for when Map starts
+  if (is.null(input$center)) {map.center <- geocode("Chicago")}
+  else {map.center = geocode(input$center)}
+  
+  if (is.null(input$bw)) {temp.color <- "color"}
+  else {
+    temp.color <- "color"
+    if (input$bw) {temp.color <- "bw"}}
+  
+  if (is.null(input$res)) {temp.scale <- 2}
+  else {
+    temp.scale <- 1
+    if (input$res) {temp.scale <- 2}}
+  
+  if (is.null(input$zoom)) {temp.zoom <- 14}
+  else {temp.zoom <- input$zoom }
+  
+  #Get Base Map
+  map.base <- get_googlemap(
+    as.matrix(map.center),
+    maptype = input$type, ## Map type as defined above (roadmap, terrain, satellite, hybrid)
+    # markers = map.center,
+    zoom = temp.zoom,            ## 14 is just about right for a 1-mile radius
+    color = temp.color,   ## "color" or "bw" (black & white)
+    scale = temp.scale,  ## Set it to 2 for high resolution output
+    messaging = FALSE,
+  )
+  
+  ## Convert the base map into a ggplot object
+  ## All added Cartesian coordinates to enable more geom options later on
+  map.base <- ggmap(map.base, extend = "panel", messaging = FALSE) + coord_cartesian() + coord_fixed(ratio = 1.5)
+  load(file = "./data/traffic.rda")
+  #traffic = head(traffic,4)
+  ## add traffic
+  #crimetypedatabase <- datetypesubset() 
+ #p <- map.base + geom_point(aes(x=END_LONGITUDE, y=END_LATITUDE), colour="red", size = 4, na.rm=TRUE, data=traffic)
+ p <- map.base + geom_segment(aes(x=START_LONGITUDE, y=START_LATITUDE,xend=END_LONGITUDE, yend=END_LATITUDE), colour="red", size = 2, data=traffic)
+
+  print(traffic)
+  plot(p)
 })
+#, width = 1800, height = 1800)
+
   })
     

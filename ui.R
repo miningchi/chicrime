@@ -65,7 +65,9 @@ shinyUI(pageWithSidebar(
                div(class="span2",uiOutput("hboundwidth")), div(class="span2",uiOutput("hboundcolor")), div(class="span2",uiOutput("hlow")),
                div(class="span2",uiOutput("hhigh"))
                ),
-      #tabPanel("Dendogram", uiOutput("dendo")),
+      tabPanel("Traffic", uiOutput("tmapcenter"), div(class="span6",uiOutput("tmapzoom")),
+               div(class="span8", plotOutput("tmap",height=600,width=600)),div(class="span4",uiOutput("tmaptype")),div(class="span2",uiOutput("tmapres")),
+               div(class="span2",uiOutput("tmapbw"))),
       tabPanel("Credits", includeMarkdown("docs/credits.md"))
     ) 
   )
