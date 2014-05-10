@@ -344,13 +344,12 @@ output$tmap <- renderPlot({
   ## All added Cartesian coordinates to enable more geom options later on
   map.base <- ggmap(map.base, extend = "panel", messaging = FALSE) + coord_cartesian() + coord_fixed(ratio = 1.5)
   load(file = "./data/traffic.rda")
+  print(traffic$CURRENT_SPEED)
   #traffic = head(traffic,4)
   ## add traffic
   #crimetypedatabase <- datetypesubset() 
- #p <- map.base + geom_point(aes(x=END_LONGITUDE, y=END_LATITUDE), colour="red", size = 4, na.rm=TRUE, data=traffic)
- p <- map.base + geom_segment(aes(x=START_LONGITUDE, y=START_LATITUDE,xend=END_LONGITUDE, yend=END_LATITUDE), colour="red", size = 2, data=traffic)
-
-  print(traffic)
+ p <- map.base + geom_segment(aes(x=START_LONGITUDE, y=START_LATITUDE,xend=END_LONGITUDE, yend=END_LATITUDE, colour=ifelse(CURRENT_SPEED > "10", "green", "red")), size = 2, data=traffic)
+  print(traffic$CURRENT_SPEED)
   plot(p)
 })
 #, width = 1800, height = 1800)
