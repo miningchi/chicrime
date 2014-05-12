@@ -157,8 +157,8 @@ grid.newpage()
 # two plots
 # from http://rpubs.com/kohske/dual_axis_in_ggplot2
 
-p1 <-ggplot(crimebytime,aes(dates,crime)) + geom_line(colour="red") + theme_bw()
-p2 <-ggplot(weatherxts,aes(dates,temperature)) + geom_line(colour="blue") + theme_bw() %+replace% 
+p1 <-ggplot(crimebytime,aes(dates,crime)) + geom_line(colour="red", size=2) + theme_bw()
+p2 <-ggplot(weatherxts,aes(dates,temperature)) + geom_line(colour="blue", size=2) + theme_bw() %+replace% 
   theme(panel.background = element_rect(fill = NA))
 
 # extract gtable
