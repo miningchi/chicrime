@@ -12,9 +12,10 @@ suppressMessages(library(parallel))
 suppressMessages(library(xts)) #added this for trends
 suppressMessages(library(stringr)) #added this for time, not sure if still needed
 suppressMessages(library(gtable)) #added this for trends
+library("rjson") #added this for json traffic data
 load(file = "./data/weather.rda")
-load(file = "./data/crimestest.rda")
-#load(file = "./data/crimesfull.rda")
+#load(file = "./data/crimestest.rda")
+load(file = "./data/crimesfull.rda")
 
 ## Define server logic required to summarize and view the selected dataset
 shinyServer(function(input, output) {
@@ -32,6 +33,19 @@ shinyServer(function(input, output) {
                  tempdatetype <- subset(tempdate, Primary.Type == input$crimetype)
                  return (tempdatetype)
                  })  
+  
+  trafficr <- reactive ({
+                URL <- 'http://data.cityofchicago.org/resource/n4j6-wkkf.json'
+                temptraffic <- fromJSON(file=URL, method='C')
+                temptraffic2 <- lapply(temptraffic, function(x) {
+                  x[sapply(x, is.null)] <- NA
+                  unlist(x)
+                })
+                temptraffic <- rbind(temptraffic2, cbind(start_lon))
+                temptraffic3 <-   do.call("rbind", temptraffic2)
+                return (temptraffic)
+                  })
+  
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## Output 1 - Data Table
@@ -43,6 +57,9 @@ shinyServer(function(input, output) {
   
     }, options = list(aLengthMenu = c(10, 25, 50, 100, 1000), iDisplayLength = 10))
   
+  
+  
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## Output 2 - Map
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -108,7 +125,7 @@ shinyServer(function(input, output) {
     df.xts <- xts(x = crimetypedatabase[, c("Primary.Type","PosixDate")], order.by = crimetypedatabase[, "PosixDate"])
     #dyearly <- apply.yearly(df.xts, function(d) {print(d)}) # Troubleshooting
   
-  #sum by crime type - NEED to allow different periods
+  #sum by crime type - and take into account different scales
   if (is.null(input$wperiod)) {temp.wperiod <- "yearly"}
   else {temp.wperiod <- input$wperiod }
   
@@ -119,15 +136,21 @@ shinyServer(function(input, output) {
     
   crimebytime<-data.frame(index(crimebytime),coredata(crimebytime[,1]))
     colnames(crimebytime)<-c("dates","crime")
-  print(crimebytime)
+  #print(crimebytime)
   
  ##ADD WEATHER
  weatherdata <- subset(weatherdata, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
-
  weatherxts <- xts(weatherdata$TempFahr,weatherdata$PosixDate)
  weatherxts<-data.frame(index(weatherxts),coredata(weatherxts[,1]))
  colnames(weatherxts)<-c("dates","temperature")
-
+ 
+ #Use central average to smooth out the data
+ if (temp.wperiod == "weekly") {mavwindow=3}
+ if (temp.wperiod == "monthly") {mavwindow=9}
+ if (temp.wperiod == "yearly") {mavwindow=31}
+ if (temp.wperiod != "daily") { mav <- function(x,n=mavwindow){filter(x,rep(1/n,n), sides=2)}
+                              weatherxts$temperature <- mav(weatherxts$temperature)}                           
+   
 #New approach to get two Y lines:
 grid.newpage()
 
@@ -311,7 +334,7 @@ output$tmapbw <- renderUI({checkboxInput("bw", "Black & White?", FALSE)})
 output$tmapzoom <- renderUI({sliderInput("zoom", "Zoom Level (Recommended - 14):", min = 9, max = 20, step = 1, value = 14)})
 
 output$tmap <- renderPlot({
-  print ("hi")
+ 
   # Set Defaults for when Map starts
   if (is.null(input$center)) {map.center <- geocode("Chicago")}
   else {map.center = geocode(input$center)}
@@ -343,13 +366,19 @@ output$tmap <- renderPlot({
   ## Convert the base map into a ggplot object
   ## All added Cartesian coordinates to enable more geom options later on
   map.base <- ggmap(map.base, extend = "panel", messaging = FALSE) + coord_cartesian() + coord_fixed(ratio = 1.5)
-  load(file = "./data/traffic.rda")
-  print(traffic$CURRENT_SPEED)
-  #traffic = head(traffic,4)
+  #load(file = "./data/traffic.rda")
+ 
+ traffic <- trafficr()
+ 
+ traffic = head(traffic,4)
+
+ print(traffic)
+ print ("hi")
+ #print(tnames)
   ## add traffic
   #crimetypedatabase <- datetypesubset() 
- p <- map.base + geom_segment(aes(x=START_LONGITUDE, y=START_LATITUDE,xend=END_LONGITUDE, yend=END_LATITUDE, colour=ifelse(CURRENT_SPEED > "10", "green", "red")), size = 2, data=traffic)
-  print(traffic$CURRENT_SPEED)
+ p <- map.base + geom_segment(aes(x=start_lon, y=START_LATITUDE,xend=END_LONGITUDE, yend=END_LATITUDE, colour=ifelse(CURRENT_SPEED > "10", "green", "red")), size = 2, data=traffic)
+  #print(traffic$CURRENT_SPEED)
   plot(p)
 })
 #, width = 1800, height = 1800)
