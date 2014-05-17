@@ -3,6 +3,7 @@
 *.csv
 *.rda
 *.history
+*.dcf
 
 ggmapTemp.png
 

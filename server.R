@@ -185,19 +185,35 @@ grid.draw(g)
 
 #print(data3)
   }, width = 1280, height = 1280)
-  
-###ANALYSIS 
 
-output$analysis <- renderPlot({
-  crimebydate <- datesubset ()
-  crimetypefreq <- crimebydate[c("Primary.Type")]
-  b <- table(crimetypefreq)
-  
-print ("working")
+########################
+###ANALYSIS ###################
+##############################
 
-print (b)
-plot(b)
-    })
+output$analperiod <- renderUI({selectInput("wperiod", "Choose Period to Analyze:", choice = c("yearly", "monthly","weekly", "daily"))})
+
+output$analplot <- renderPlot({ 
+crimetypedatabase <- datetypesubset()   
+
+#Convert to XTS for analysis Columns should be Primary Type and PosixData
+df.xts <- xts(x = crimetypedatabase[, c("Primary.Type","PosixDate")], order.by = crimetypedatabase[, "PosixDate"])
+#dyearly <- apply.yearly(df.xts, function(d) {print(d)}) # Troubleshooting
+
+#sum by crime type - and take into account different scales
+if (is.null(input$wperiod)) {temp.wperiod <- "yearly"}
+else {temp.wperiod <- input$wperiod }
+
+if (temp.wperiod == "daily") {crimebytime <- apply.daily(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
+if (temp.wperiod == "weekly") {crimebytime <- apply.weekly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
+if (temp.wperiod == "monthly") {crimebytime <- apply.monthly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
+if (temp.wperiod == "yearly") {crimebytime <- apply.yearly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
+
+crimebytime<-data.frame(index(crimebytime),coredata(crimebytime[,1]))
+colnames(crimebytime)<-c("dates","crime")
+plot(crimebytime)
+  })
+
+
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Output - Heat Crime Map
@@ -326,7 +342,7 @@ output$heatmap <- renderPlot({
 #  Traffic
 ###############################################
 
-output$tmaptitle <- renderUI({helpText(HTML("<b>MAP SETTINGS</b>"))})
+output$tmaptitle <- renderUI({helpText(HTML("<b>MAP SETTINGS **NOT LIVE YET**</b>"))})
 output$tmapcenter <- renderUI({textInput("center", "Enter a Location to Center Map, such as city or zipcode, the click Update", "Chicago")})
 output$tmaptype <- renderUI({selectInput("type", "Choose Google Map Type:", choice = c("roadmap", "satellite", "hybrid","terrain"))})
 output$tmapres <- renderUI({checkboxInput("res", "High Resolution?", FALSE)})
