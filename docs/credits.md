@@ -6,7 +6,7 @@ Colloborators:
 + Jeremy Braithwaite
 
 Inspiration:
-<a href="https://blenditbayes.shinyapps.io/crimemap/" target=" blank">Crime Data Visualization for London</a>
+<a href="https://blenditbayes.shinyapps.io/crimemap/" target=" blank">UK Crime Visualisation</a>
 
 Data:
 <a href="https://data.cityofchicago.org" target=" blank">City of Chicago Data Portal</a>
