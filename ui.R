@@ -2,6 +2,7 @@ suppressMessages(library(shiny))
 suppressMessages(library(rCharts))
 suppressMessages(library(doSNOW))
 suppressMessages(library(foreach))
+load(file = "./data/community.RDA")
 
 shinyUI(pageWithSidebar(
   
@@ -17,13 +18,13 @@ shinyUI(pageWithSidebar(
     
     wellPanel(
       helpText(HTML("<b>READY?</b>")),
-      HTML("Continue to scroll down and modify the settings. Come back and click this when you are ready to render new plots."),
+      HTML("Scroll down to modify the settings. Click this when you are ready to render new plots."),
       submitButton("Update Graphs and Tables")
     ),
     
     wellPanel(
       helpText(HTML("<b>BASIC SETTINGS</b>")),
-      selectInput("crimetype", "Choose Crime Type:", choice = c("HOMICIDE","THEFT","CRIM SEXUAL ASSAULT","BURGLARY","BATTERY","ROBBERY",
+      selectInput("crimetype", "Choose Crime Type:", choice = c("HOMICIDE","VIOLENCE","PROPERTYCRIME","THEFT","CRIM SEXUAL ASSAULT","BURGLARY","BATTERY","ROBBERY",
                                             "INTERFERENCE WITH PUBLIC OFFICER","DECEPTIVE PRACTICE","ARSON","CRIMINAL DAMAGE",
                                             "ASSAULT","NARCOTICS","CRIMINAL TRESPASS","OTHER OFFENSE","PUBLIC PEACE VIOLATION",
                                             "SEX OFFENSE","OFFENSE INVOLVING CHILDREN","PROSTITUTION","WEAPONS VIOLATION","KIDNAPPING",
@@ -38,9 +39,16 @@ shinyUI(pageWithSidebar(
       dateInput("enddate", "End Date of Data Collection:", value = "2015-01-02", format = "mm-dd-yyyy",
                 min = "startdate", max = "2014-09-30"),
       ##Need some validation that enddate is after start date
-      
-      helpText("MM-DD-YEAR as Date Format")      
-    )
+      helpText("MM-DD-YEAR as Date Format")),
+    
+    wellPanel(
+      selectInput('community', 'Community Area', community$Community.Area, selected = "Chicago-All",selectize=TRUE),
+      helpText("Applies to Crime Map, Analysis, and Weather sections")),
+    
+    wellPanel(
+      selectInput("period", "Choose period for analysis:", choice = c("Monthly","Weekly","Daily","Yearly")),
+      helpText("Applies to Analysis and Weather sections"))
+        
     
    ),
   
@@ -57,17 +65,19 @@ shinyUI(pageWithSidebar(
       tabPanel("Crime Map", uiOutput("mapcenter"), div(class="span6",uiOutput("mapzoom")),
                div(class="span8", plotOutput("map",height=600,width=600)),div(class="span4",uiOutput("maptype")),div(class="span2",uiOutput("mapres")),
                div(class="span2",uiOutput("mapbw"))),
-      tabPanel("Analysis", uiOutput("analperiod"),plotOutput("analplot")),
-      tabPanel("Weather", div(class="span4",uiOutput("weatherperiod")), plotOutput("weather")),
+      tabPanel("Analysis",plotOutput("analplot"), uiOutput("decomintro"), plotOutput("decomplot")),
+      #div(class="span4",uiOutput("weatherperiod"))
+      tabPanel("Weather", plotOutput("weather")),
       tabPanel("Crime Heat Map", uiOutput("hmapcenter"), div(class="span6",uiOutput("hmapzoom")),
                div(class="span8", plotOutput("heatmap",height=600,width=600)),div(class="span4",uiOutput("hmaptype")),div(class="span2",uiOutput("hmapres")),
                div(class="span2",uiOutput("hmapbw")), div(class="span2",uiOutput("halpharange")), div(class="span2",uiOutput("hbins")),
                div(class="span2",uiOutput("hboundwidth")), div(class="span2",uiOutput("hboundcolor")), div(class="span2",uiOutput("hlow")),
                div(class="span2",uiOutput("hhigh"))
                ),
-      tabPanel("Traffic", uiOutput("tmaptitle"),uiOutput("tmapcenter"), div(class="span6",uiOutput("tmapzoom")),
-               div(class="span8", plotOutput("tmap",height=600,width=600)),div(class="span4",uiOutput("tmaptype")),div(class="span2",uiOutput("tmapres")),
-               div(class="span2",uiOutput("tmapbw"))),
+#       tabPanel("Traffic", uiOutput("tmaptitle"),uiOutput("tmapcenter"), div(class="span6",uiOutput("tmapzoom")),
+#                div(class="span8", plotOutput("tmap",height=600,width=600)),div(class="span4",uiOutput("tmaptype")),div(class="span2",uiOutput("tmapres")),
+#                div(class="span2",uiOutput("tmapbw"))),
+  #    tabPanel("Map2", showOutput("map2","leaflet")),
       tabPanel("Credits", includeMarkdown("docs/credits.md"))
     ) 
   )

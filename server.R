@@ -12,10 +12,12 @@ suppressMessages(library(parallel))
 suppressMessages(library(xts)) #added this for trends
 suppressMessages(library(stringr)) #added this for time, not sure if still needed
 suppressMessages(library(gtable)) #added this for trends
-library("rjson") #added this for json traffic data
+library(forecast)
 load(file = "./data/weather.rda")
-#load(file = "./data/crimestest.rda")
-load(file = "./data/crimesfull.rda")
+load(file = "./data/crimesfull2.rda")
+#load(file = "./data/crimes2014.rda")
+load(file = "./data/IUCR.rda")
+load(file = "./data/community2.RDA")
 
 ## Define server logic required to summarize and view the selected dataset
 shinyServer(function(input, output) {
@@ -24,27 +26,68 @@ shinyServer(function(input, output) {
   ## Reactive Functions
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
-  datesubset <- reactive({
-          subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
-          })
-  
+  #Subset by date, primary type, and community area
   datetypesubset <- reactive({
-                 tempdate   <- subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
-                 tempdatetype <- subset(tempdate, Primary.Type == input$crimetype)
-                 return (tempdatetype)
+                tempdate   <- subset(df, PosixDate > as.POSIXct(strptime(input$startdate, format="%Y-%m-%d")) & PosixDate < as.POSIXct(strptime(input$enddate, format="%Y-%m-%d")))
+                 
+                 if (input$crimetype == "VIOLENCE") {
+                   temp <- subset(IUCR,ViolentCrime == 1)
+                   violence <- temp$IUCR
+                   tempdatetype <- subset(tempdate, IUCR %in% violence)
+                   tempdatetype$Primary.Type <- "VIOLENCE"
+                    return (tempdatetype)
+                 }
+                 
+                 if (input$crimetype == "PROPERTYCRIME") {
+                   temp <- subset(IUCR,PropertyCrime == 1)
+                   property <- temp$IUCR
+                   tempdatetype <- subset(tempdate, IUCR %in% property)
+                   tempdatetype$Primary.Type <- "PROPERTYCRIME"
+                   return (tempdatetype)
+                 }
+                 
+                tempdate <- subset(tempdate, Primary.Type == input$crimetype)
+                
+                if (input$community != "Chicago-All") {
+                        temp.inter <- grep (input$community,community1$Community.Area)
+                       tempdate <- subset(tempdate, Community.Area == temp.inter)
+                            }
+                
+                 #Not working - need to align the Primary description between IUCR and crime data
+#                  temp <- subset(IUCR,'Primary Description' == input$crimetype)
+#                  crime <- temp$IUCR
+#                  print (crime)
+#                  tempdatetype <- subset(tempdate, IUCR %in% crime)
+#                  tempdatetype$Primary.Type <- input$crimetype
+
+               
+                 return (tempdate)
                  })  
-  
-  trafficr <- reactive ({
-                URL <- 'http://data.cityofchicago.org/resource/n4j6-wkkf.json'
-                temptraffic <- fromJSON(file=URL, method='C')
-                temptraffic2 <- lapply(temptraffic, function(x) {
-                  x[sapply(x, is.null)] <- NA
-                  unlist(x)
-                })
-                temptraffic <- rbind(temptraffic2, cbind(start_lon))
-                temptraffic3 <-   do.call("rbind", temptraffic2)
-                return (temptraffic)
-                  })
+
+#Creates XTS object with totals by user selected period
+  crimebytimeXTS <- reactive({
+                dfin <- datetypesubset()
+                df.xts <- xts(x = dfin[, c("Primary.Type","PosixDate")], order.by = dfin[, "PosixDate"])
+                if (input$period == "Daily") {crimebytime <- apply.daily(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
+                if (input$period == "Weekly") {crimebytime <- apply.weekly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
+                if (input$period == "Monthly") {crimebytime <- apply.monthly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
+                if (input$period == "Yearly") {crimebytime <- apply.yearly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
+                df.xts <- NULL
+                return(crimebytime)
+              })
+
+#Not Using
+#   trafficr <- reactive ({
+#                 URL <- 'http://data.cityofchicago.org/resource/n4j6-wkkf.json'
+#                 temptraffic <- fromJSON(file=URL, method='C')
+#                 temptraffic2 <- lapply(temptraffic, function(x) {
+#                   x[sapply(x, is.null)] <- NA
+#                   unlist(x)
+#                 })
+#                 temptraffic <- rbind(temptraffic2, cbind(start_lon))
+#                 temptraffic3 <-   do.call("rbind", temptraffic2)
+#                 return (temptraffic)
+#                   })
   
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -57,15 +100,13 @@ shinyServer(function(input, output) {
   
     }, options = list(aLengthMenu = c(10, 25, 50, 100, 1000), iDisplayLength = 10))
   
-  
-  
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## Output 2 - Map
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
   output$maptitle <- renderUI({helpText(HTML("<b>MAP SETTINGS</b>"))})
-  output$mapcenter <- renderUI({textInput("center", "Enter a Location to Center Map, such as city or zipcode, the click Update", "Chicago")})
+  output$mapcenter <- renderUI({textInput("center", "To Re-Center Map, Enter a Location such as city or zipcode, then click Update", "Chicago")})
   output$maptype <- renderUI({selectInput("type", "Choose Google Map Type:", choice = c("roadmap", "satellite", "hybrid","terrain"))})
   output$mapres <- renderUI({checkboxInput("res", "High Resolution?", FALSE)})
   output$mapbw <- renderUI({checkboxInput("bw", "Black & White?", FALSE)})
@@ -74,8 +115,6 @@ shinyServer(function(input, output) {
   output$map <- renderPlot({
      
     # Set Defaults for when Map starts
-    if (is.null(input$center)) {map.center <- geocode("Chicago")}
-      else {map.center = geocode(input$center)}
     
     if (is.null(input$bw)) {temp.color <- "color"}
       else {
@@ -89,7 +128,38 @@ shinyServer(function(input, output) {
     
     if (is.null(input$zoom)) {temp.zoom <- 14}
       else {temp.zoom <- input$zoom }
+
+    ## add crime points
+    crimetypedatabase <- datetypesubset() 
     
+    #Center Map Code
+    if (is.null(input$center))  {
+      #Center based on data if Null
+              map.center <- head(crimetypedatabase,n=2)
+              map.center <- map.center[c("Longitude","Latitude")]
+              names(map.center)[1]<-"lon"
+              names(map.center)[2]<-"lat"
+              map.center <- map.center[-1,]
+                }                          
+      else   {
+              #Center based if people leave default Chicago
+                if (match(input$center,"Chicago",nomatch=0)) {
+                        print("hi")
+                        print(input$center)
+                        #Center Map on Area of interest
+                        map.center <- head(crimetypedatabase,n=2)
+                        map.center <- map.center[c("Longitude","Latitude")]
+                        names(map.center)[1]<-"lon"
+                        names(map.center)[2]<-"lat"
+                        map.center <- map.center[-1,]
+                      } 
+                
+              #Use the value in the box provided
+              else 
+                {map.center <- geocode(input$center)}
+            }
+
+
    #Get Base Map
     map.base <- get_googlemap(
       as.matrix(map.center),
@@ -104,36 +174,20 @@ shinyServer(function(input, output) {
     ## Convert the base map into a ggplot object
     ## All added Cartesian coordinates to enable more geom options later on
     map.base <- ggmap(map.base, extend = "panel", messaging = FALSE) + coord_cartesian() + coord_fixed(ratio = 1.5)
- 
-    ## add crime points
-    crimetypedatabase <- datetypesubset() 
+   
  p <- map.base + geom_point(aes(x=Longitude, y=Latitude), colour="red", size = 4, na.rm=TRUE, data=crimetypedatabase)
   
  plot(p)
   })
  #, width = 1800, height = 1800)
   
- 
-  ###### Weather variable ###########
-   
- output$weatherperiod <- renderUI({selectInput("wperiod", "Choose Period to Analyze:", choice = c("yearly", "monthly","weekly", "daily"))})
- 
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## WEATHER
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
  output$weather <- renderPlot({  
-    crimetypedatabase <- datetypesubset()   
-   
-  #Convert to XTS for analysis Columns should be Primary Type and PosixData
-    df.xts <- xts(x = crimetypedatabase[, c("Primary.Type","PosixDate")], order.by = crimetypedatabase[, "PosixDate"])
-    #dyearly <- apply.yearly(df.xts, function(d) {print(d)}) # Troubleshooting
-  
-  #sum by crime type - and take into account different scales
-  if (is.null(input$wperiod)) {temp.wperiod <- "yearly"}
-  else {temp.wperiod <- input$wperiod }
-  
-  if (temp.wperiod == "daily") {crimebytime <- apply.daily(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
-  if (temp.wperiod == "weekly") {crimebytime <- apply.weekly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
-  if (temp.wperiod == "monthly") {crimebytime <- apply.monthly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
-  if (temp.wperiod == "yearly") {crimebytime <- apply.yearly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
-    
+
+  crimebytime <-crimebytimeXTS()
   crimebytime<-data.frame(index(crimebytime),coredata(crimebytime[,1]))
     colnames(crimebytime)<-c("dates","crime")
   #print(crimebytime)
@@ -145,10 +199,10 @@ shinyServer(function(input, output) {
  colnames(weatherxts)<-c("dates","temperature")
  
  #Use central average to smooth out the data
- if (temp.wperiod == "weekly") {mavwindow=3}
- if (temp.wperiod == "monthly") {mavwindow=9}
- if (temp.wperiod == "yearly") {mavwindow=31}
- if (temp.wperiod != "daily") { mav <- function(x,n=mavwindow){filter(x,rep(1/n,n), sides=2)}
+ if (input$period == "Weekly") {mavwindow=3}
+ if (input$period== "Monthly") {mavwindow=9}
+ if (input$period == "Yearly") {mavwindow=31}
+ if (input$period != "Daily") { mav <- function(x,n=mavwindow){filter(x,rep(1/n,n), sides=2)}
                               weatherxts$temperature <- mav(weatherxts$temperature)}                           
    
 #New approach to get two Y lines:
@@ -186,45 +240,56 @@ grid.draw(g)
 #print(data3)
   }, width = 1280, height = 1280)
 
-########################
-###ANALYSIS ###################
-##############################
 
-output$analperiod <- renderUI({selectInput("wperiod", "Choose Period to Analyze:", choice = c("yearly", "monthly","weekly", "daily"))})
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## ANALYSIS
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 output$analplot <- renderPlot({ 
-crimetypedatabase <- datetypesubset()   
 
-#Convert to XTS for analysis Columns should be Primary Type and PosixData
-df.xts <- xts(x = crimetypedatabase[, c("Primary.Type","PosixDate")], order.by = crimetypedatabase[, "PosixDate"])
-#dyearly <- apply.yearly(df.xts, function(d) {print(d)}) # Troubleshooting
+            crimebytime <-crimebytimeXTS()
 
-#sum by crime type - and take into account different scales
-if (is.null(input$wperiod)) {temp.wperiod <- "yearly"}
-else {temp.wperiod <- input$wperiod }
+            crimebytime<-data.frame(index(crimebytime),coredata(crimebytime[,1]))
+            colnames(crimebytime)<-c("dates","crime")
+            plot(crimebytime)
+              })
 
-if (temp.wperiod == "daily") {crimebytime <- apply.daily(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
-if (temp.wperiod == "weekly") {crimebytime <- apply.weekly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
-if (temp.wperiod == "monthly") {crimebytime <- apply.monthly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
-if (temp.wperiod == "yearly") {crimebytime <- apply.yearly(df.xts, function(d) {sum(str_count(d, input$crimetype ))})}
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## DECOMPOSE
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-crimebytime<-data.frame(index(crimebytime),coredata(crimebytime[,1]))
-colnames(crimebytime)<-c("dates","crime")
-plot(crimebytime)
-  })
+output$decomintro <- renderUI({helpText(HTML("<br><b>The Time Series plot requires a large number of data points to run.  If you get an error, try again after enlarging the data.</b>"))})
 
+output$decomplot <- renderPlot({ 
+                # GET XTS data
+                crimebytime <-crimebytimeXTS()
+                
+                #Set frequence for time series
+                n <- 1
+                if (input$period == "Daily") {n <- 365}
+                if (input$period == "Weekly") {n <- 52}
+                if (input$period == "Monthly") {n <- 12}
+                if (input$period == "Yearly") {n <- 1}
+                
+                #Convert to time series
+                crimebytimeTS <- ts(crimebytime,frequency=n)
+                
+                #Decompose
+                f <- decompose(crimebytimeTS)
+              plot(f)
+              })
 
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Output - Heat Crime Map
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-output$hmaptitle <- renderUI({helpText(HTML("<b>DENSITY PLOT SETTINGS</b>"))})
+output$hmaptitle <- renderUI({helpText(HTML("<b>HEAT MAP SETTINGS</b>"))})
 output$hmapcenter <- renderUI({textInput("center", "Enter a Location to Center Map, such as city or zipcode, the click Update", "Chicago")})
 output$hmaptype <- renderUI({selectInput("type", "Choose Google Map Type:", choice = c("roadmap", "satellite", "hybrid","terrain"))})
 output$hmapres <- renderUI({checkboxInput("res", "High Resolution?", FALSE)})
 output$hmapbw <- renderUI({checkboxInput("bw", "Black & White?", FALSE)})
-output$hmapzoom <- renderUI({sliderInput("zoom", "Zoom Level (Recommended - 14):", min = 9, max = 20, step = 1, value = 14)})
+output$hmapzoom <- renderUI({sliderInput("zoom", "Zoom Level (Recommended - 13):", min = 9, max = 20, step = 1, value = 13)})
 output$halpharange <-renderUI({sliderInput("halpharanage", "Alpha Range:",
                     min = 0, max = 1, step = 0.1, value = c(0.1, 0.4))})
 output$hbins <-renderUI({sliderInput("hbins", "Number of Bins:", 
@@ -244,8 +309,35 @@ output$heatmap <- renderPlot({
   crimetypedatabase <- datetypesubset() 
   
   # Set Defaults for when Map starts
-  if (is.null(input$center)) {map.center <- geocode("Chicago")}
-  else {map.center = geocode(input$center)}
+  #if (is.null(input$center)) {map.center <- geocode("Chicago")}
+ # else {map.center = geocode(input$center)}
+  
+  if (is.null(input$hmapcenter))  {
+                  #Center based on data if Null
+                  map.center <- head(crimetypedatabase,n=2)
+                  map.center <- map.center[c("Longitude","Latitude")]
+                  names(map.center)[1]<-"lon"
+                  names(map.center)[2]<-"lat"
+                  map.center <- map.center[-1,]
+                }                          
+      else   {
+              #Center based if people leave default Chicago
+                if (match(input$hmapcenter,"Chicago",nomatch=0)) {
+                  print("hi")
+                  print(input$center)
+                  #Center Map on Area of interest
+                  map.center <- head(crimetypedatabase,n=2)
+                  map.center <- map.center[c("Longitude","Latitude")]
+                  names(map.center)[1]<-"lon"
+                  names(map.center)[2]<-"lat"
+                  map.center <- map.center[-1,]}
+                                                 
+                  #Use the value in the box provided
+                 else 
+                  {map.center <- geocode(input$hmapcenter)}
+         }
+  
+  
   
   if (is.null(input$bw)) {temp.color <- "color"}
   else {
@@ -257,7 +349,7 @@ output$heatmap <- renderPlot({
     temp.scale <- 1
     if (input$res) {temp.scale <- 2}}
   
-  if (is.null(input$zoom)) {temp.zoom <- 14}
+  if (is.null(input$zoom)) {temp.zoom <- 13}
   else {temp.zoom <- input$zoom }
   
   if (is.null(input$halpharange)) {temp.halpharange <- c(0.1, 0.4)}
@@ -338,66 +430,67 @@ output$heatmap <- renderPlot({
   plot(map.final)
   })
 
-###############################################
-#  Traffic
-###############################################
+#Server
+######################## NEW MAP
+############ Not working
 
-output$tmaptitle <- renderUI({helpText(HTML("<b>MAP SETTINGS **NOT LIVE YET**</b>"))})
-output$tmapcenter <- renderUI({textInput("center", "Enter a Location to Center Map, such as city or zipcode, the click Update", "Chicago")})
-output$tmaptype <- renderUI({selectInput("type", "Choose Google Map Type:", choice = c("roadmap", "satellite", "hybrid","terrain"))})
-output$tmapres <- renderUI({checkboxInput("res", "High Resolution?", FALSE)})
-output$tmapbw <- renderUI({checkboxInput("bw", "Black & White?", FALSE)})
-output$tmapzoom <- renderUI({sliderInput("zoom", "Zoom Level (Recommended - 14):", min = 9, max = 20, step = 1, value = 14)})
-
-output$tmap <- renderPlot({
- 
-  # Set Defaults for when Map starts
-  if (is.null(input$center)) {map.center <- geocode("Chicago")}
-  else {map.center = geocode(input$center)}
+output$map2 <- renderMap({
+  df3 <- datetypesubset()
+  df3 <- rename(df3, c("Latitude"="lat", "Longitude"="lon"))
   
-  if (is.null(input$bw)) {temp.color <- "color"}
-  else {
-    temp.color <- "color"
-    if (input$bw) {temp.color <- "bw"}}
+  #Get the center from the first value
+  map.center <- head(df3,n=1)
+  map.center <- map.center[c("lat","lon")]
   
-  if (is.null(input$res)) {temp.scale <- 2}
-  else {
-    temp.scale <- 1
-    if (input$res) {temp.scale <- 2}}
   
-  if (is.null(input$zoom)) {temp.zoom <- 14}
-  else {temp.zoom <- input$zoom }
+  #Get text for labels
+  #collisiontype <- (df3$collisiontypecode)
+  #collisioncodes <- c(Pedestrian=1, Pedalcyclist=2, Train=3, Animal=4,Overturned=5, 
+  #                    "Fixed Object"=6, "Other Object"=7, "Other non-collision"=8, "Parked Motor vehicle"=9, Turning= 10,
+  #                   "Read-end"=11, "Sideswipe-same direction"=12, "Sideswipe-opposite direction"=13, "Head-on"=14, Angle=15)
+  #df3$CollisionType <- names(collisioncodes)[match(collisiontype,collisioncodes)]
   
-  #Get Base Map
-  map.base <- get_googlemap(
-    as.matrix(map.center),
-    maptype = input$type, ## Map type as defined above (roadmap, terrain, satellite, hybrid)
-    # markers = map.center,
-    zoom = temp.zoom,            ## 14 is just about right for a 1-mile radius
-    color = temp.color,   ## "color" or "bw" (black & white)
-    scale = temp.scale,  ## Set it to 2 for high resolution output
-    messaging = FALSE,
+  #Infor for popup tags
+  df3$color <- "#050505"
+  df3$popup <- paste0("<p>Primary Type:  ", df3$Primary.Type, 
+                      "<br>Case Number:  ", df3$Case.Number) 
+  
+  #Convert to list for JSON
+  tmp.data <- apply(df3, 1, as.list)
+  
+  
+  mapc <- Leaflet$new()
+  mapc$setView(c(map.center$lat,map.center$lon), zoom = 12)
+  #mapc$setView(c(41,-87), zoom = 13)
+  mapc$tileLayer(provider = 'Stamen.TonerLite')
+  mapc$tileLayer(provider = 'OpenStreetMap.Mapnik')
+  mapc$addAssets(
+    jshead = "https://github.com/SINTEF-9012/PruneCluster/blob/master/dist/PruneCluster.js"
   )
-  
-  ## Convert the base map into a ggplot object
-  ## All added Cartesian coordinates to enable more geom options later on
-  map.base <- ggmap(map.base, extend = "panel", messaging = FALSE) + coord_cartesian() + coord_fixed(ratio = 1.5)
-  load(file = "./data/traffic.rda")
- 
- #traffic <- trafficr()
- 
- #traffic = head(traffic,4)
-
- #print(traffic)
- #print ("hi")
- #print(tnames)
-  ## add traffic
-  #crimetypedatabase <- datetypesubset() 
- p <- map.base + geom_segment(aes(x=START_LONGITUDE, y=START_LATITUDE,xend=END_LONGITUDE, yend=END_LATITUDE, colour=ifelse(CURRENT_SPEED > "10", "green", "red")), size = 2, data=traffic)
-  #print(traffic$CURRENT_SPEED)
-  plot(p)
+  mapc$addLayer(pruneCluster)
+  mapc$geoJson(toGeoJSON(tmp.data, lat = 'lat', lon = 'lon'),
+               onEachFeature = '#! function(feature, layer){
+               layer.bindPopup(feature.properties.popup)
+} !#',
+               pointToLayer =  "#! function(feature, latlng){
+               return L.circleMarker(latlng, {
+               radius: 8,
+               fillColor: feature.properties.color || 'red', 
+               color: '#FF0000',
+               weight: 1,
+               fillOpacity: 0.8
+               })
+} !#"           
+)
+# map$marker(
+#    c(map.center$lat,map.center$lon),
+#    bindPopup = 'Hi. I am a popup'
+#  )
+mapc$enablePopover(TRUE)
+mapc
 })
-#, width = 1800, height = 1800)
+
+
 
   })
     
