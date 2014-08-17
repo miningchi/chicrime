@@ -4,6 +4,23 @@ suppressMessages(library(doSNOW))
 suppressMessages(library(foreach))
 load(file = "./data/community.RDA")
 
+googleAnalytics <- function(account="UA-53239073-3"){
+  HTML(paste("<script type=\"text/javascript\">
+             
+             var _gaq = _gaq || [];
+             _gaq.push(['_setAccount', '",account,"']);
+             _gaq.push(['_setDomainName', 'miningchi2.shinyapps.io']);
+             _gaq.push(['_trackPageview']);
+             
+             (function() {
+             var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+             ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+             var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+             })();
+             
+             </script>", sep=""))
+}
+
 shinyUI(pageWithSidebar(
   
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -65,7 +82,7 @@ shinyUI(pageWithSidebar(
       tabPanel("Crime Map", uiOutput("mapcenter"), div(class="span6",uiOutput("mapzoom")),
                div(class="span8", plotOutput("map",height=600,width=600)),div(class="span4",uiOutput("maptype")),div(class="span2",uiOutput("mapres")),
                div(class="span2",uiOutput("mapbw"))),
-      tabPanel("Analysis",plotOutput("analplot"), uiOutput("decomintro"), plotOutput("decomplot")),
+      tabPanel("Analysis",showOutput("analysis","highcharts"), uiOutput("decomintro"), plotOutput("decomplot")),
       #div(class="span4",uiOutput("weatherperiod"))
       tabPanel("Weather", plotOutput("weather")),
       tabPanel("Crime Heat Map", uiOutput("hmapcenter"), div(class="span6",uiOutput("hmapzoom")),
@@ -79,7 +96,8 @@ shinyUI(pageWithSidebar(
 #                div(class="span2",uiOutput("tmapbw"))),
   #    tabPanel("Map2", showOutput("map2","leaflet")),
       tabPanel("Credits", includeMarkdown("docs/credits.md"))
-    ) 
+    ), 
+googleAnalytics()  
   )
 
 ))

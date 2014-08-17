@@ -19,6 +19,25 @@ load(file = "./data/crimesfull2.rda")
 load(file = "./data/IUCR.rda")
 load(file = "./data/community2.RDA")
 
+#XTS Melt to use HighCharts
+xtsMelt <- function(data) {
+  require(reshape2)
+  #translate xts to time series to json with date and data
+  #for this behavior will be more generic than the original
+  #data will not be transformed, so template.rmd will be changed to reflect
+  #convert to data frame
+  data.df <- data.frame(cbind(format(index(data),"%Y-%m-%d"),coredata(data)))
+  colnames(data.df)[1] = "date"
+  data.melt <- melt(data.df,id.vars=1,stringsAsFactors=FALSE)
+  colnames(data.melt) <- c("date","indexname","value")
+  #remove periods from indexnames to prevent javascript confusion
+  #these . usually come from spaces in the colnames when melted
+  data.melt[,"indexname"] <- apply(matrix(data.melt[,"indexname"]),2,gsub,pattern="[.]",replacement="")
+  return(data.melt)
+  #return(df2json(na.omit(data.melt)))
+}
+
+
 ## Define server logic required to summarize and view the selected dataset
 shinyServer(function(input, output) {
   
@@ -245,15 +264,28 @@ grid.draw(g)
 ## ANALYSIS
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-output$analplot <- renderPlot({ 
+output$analysis <- renderChart2({
 
-            crimebytime <-crimebytimeXTS()
-
-            crimebytime<-data.frame(index(crimebytime),coredata(crimebytime[,1]))
-            colnames(crimebytime)<-c("dates","crime")
-            plot(crimebytime)
-              })
-
+  crimebytime <-crimebytimeXTS()
+  
+  #Convert data using xtsMelt for highcharts plot
+  ust.melt <- na.omit(xtsMelt(crimebytime))
+  ust.melt$date2 <- as.Date(ust.melt$date, format = "%Y-%m-%d")
+  ust.melt$Crime <- as.numeric(as.character(ust.melt$value))
+  ust.melt$date4  <- as.numeric(as.POSIXct(ust.melt$date2, origin="1970-01-01")) * 1000
+  
+  #Highchart plot
+  h1 <- hPlot(
+    Crime ~ date4,  #or x="date", y="value"
+    data = ust.melt, 
+    color = '#4572A7',
+    type = 'spline',
+    title = paste("Crimes for ",input$crimetype)
+  ) 
+  h1$xAxis(type = "datetime")
+  
+  h1
+})
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## DECOMPOSE
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
