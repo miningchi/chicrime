@@ -1,6 +1,6 @@
 chicrime
 ========
-The code here is for a Shiny App that allows you to visualize and analyze Chicago's crime statistics.  Some specifics include:
+The code here is for a Shiny App found at <a href="https://miningchi2.shinyapps.io/chicrime/" target=" blank">MiningChi.com</a> that allows you to visualize and analyze Chicago's crime statistics.  Some specifics include:
 
 + Finding crimes on a map
 + Analyzing crimes over time
@@ -17,4 +17,4 @@ When using the maps, you can recenter by map by choosing a different location, e
 
 This site is designed for people to learn and explore relationships in crime data. Portions of the site may have errors/slowdowns if you either try to query too much data or have a query that is too narrow.
 
-All the data and and code for this site are all freely available.  If you are interested in data visualization, statistics, or crime - then join us!  A list of our current team members and contact info is also shown on the credits page.
+All the data and and code for this site are all freely available.  If you are interested in data visualization, statistics, or crime - then join us!
