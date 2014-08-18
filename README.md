@@ -1,4 +1,4 @@
-chicrime
+Chicago Crime Visualization and Analysis
 ========
 The code here is for a Shiny App found at <a href="https://miningchi2.shinyapps.io/chicrime/" target=" blank">MiningChi.com</a> that allows you to visualize and analyze Chicago's crime statistics.  Some specifics include:
 
