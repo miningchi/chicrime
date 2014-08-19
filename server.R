@@ -12,6 +12,7 @@ suppressMessages(library(parallel))
 suppressMessages(library(xts)) #added this for trends
 suppressMessages(library(stringr)) #added this for time, not sure if still needed
 suppressMessages(library(gtable)) #added this for trends
+library(bfast)
 library(forecast)
 load(file = "./data/weather.rda")
 load(file = "./data/crimesfull2.rda")
@@ -286,31 +287,6 @@ output$analysis <- renderChart2({
   
   h1
 })
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## DECOMPOSE
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-output$decomintro <- renderUI({helpText(HTML("<br><b>The Time Series plot requires a large number of data points to run.  If you get an error, try again after enlarging the data.</b>"))})
-
-output$decomplot <- renderPlot({ 
-                # GET XTS data
-                crimebytime <-crimebytimeXTS()
-                
-                #Set frequence for time series
-                n <- 1
-                if (input$period == "Daily") {n <- 365}
-                if (input$period == "Weekly") {n <- 52}
-                if (input$period == "Monthly") {n <- 12}
-                if (input$period == "Yearly") {n <- 1}
-                
-                #Convert to time series
-                crimebytimeTS <- ts(crimebytime,frequency=n)
-                
-                #Decompose
-                f <- decompose(crimebytimeTS)
-              plot(f)
-              })
-
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Output - Heat Crime Map
@@ -461,6 +437,93 @@ output$heatmap <- renderPlot({
 
   plot(map.final)
   })
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Output - Trends
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## DECOMPOSE
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+output$decomintro <- renderUI({helpText(HTML("<br><b>The Time Series analysis requires a large number of data points to run.  
+                                              If you get an error, try again after enlarging the data.
+                                             The first plot shows overall trend.  The second plot (Tt) shows abrupt changes in crime. </b>"))})
+
+output$decomplot <- renderPlot({ 
+  # GET XTS data
+  crimebytime <-crimebytimeXTS()
+  
+  #Set frequence for time series
+  n <- 1
+  if (input$period == "Daily") {n <- 365}
+  if (input$period == "Weekly") {n <- 52}
+  if (input$period == "Monthly") {n <- 12}
+  if (input$period == "Yearly") {n <- 1}
+  
+  #Convert to time series
+  crimebytimeTS <- ts(crimebytime,frequency=n)
+  
+  #Decompose
+  f <- decompose(crimebytimeTS)
+  plot(f, sub = "Decomposition that shows overall trend")
+})
+
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Trends with bfast
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+output$trends <- renderPlot({ 
+        # GET XTS data
+        crimebytime <-crimebytimeXTS()
+      
+        #Set frequence for time series
+        n <- 1
+        if (input$period == "Daily") {n <- 365}
+        if (input$period == "Weekly") {n <- 52}
+        if (input$period == "Monthly") {n <- 12}
+        if (input$period == "Yearly") {n <- 1}
+        
+        #Convert to time series
+        crimebytimeTS <- ts(crimebytime,frequency=n)
+        (dim(crimebytimeTS) <- NULL)
+        #Decompose
+        d <- bfast(crimebytimeTS,season="dummy",max.iter=1)
+        
+        plot(d, main = "Break detection highlights abrupt changes")
+    })
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Trends with bfast
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+##NOT WORKING YET
+output$bfastmonitor <- renderText({ 
+  # GET XTS data
+  crimebytime <-crimebytimeXTS()
+  
+  #Set frequence for time series
+  n <- 1
+  if (input$period == "Daily") {n <- 365}
+  if (input$period == "Weekly") {n <- 52}
+  if (input$period == "Monthly") {n <- 12}
+  if (input$period == "Yearly") {n <- 1}
+  
+  #Convert to time series
+  crimebytimeTS <- ts(crimebytime,frequency=n)
+  (dim(crimebytimeTS) <- NULL)
+  #Decompose
+  w <- bfastmonitor(crimebytimeTS, start = c(2014, 1))
+  if (is.null(w$breakpoint)) {
+    print ("hi")
+    return() }
+  else {
+  paste("You have selected", w$breakpoint)
+  }
+})
+
 
 #Server
 ######################## NEW MAP

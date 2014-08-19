@@ -78,13 +78,10 @@ shinyUI(pageWithSidebar(
   mainPanel(
     tabsetPanel(
       tabPanel("Introduction", includeMarkdown("docs/introduction.md")),
-      tabPanel("Data", dataTableOutput("datatable")),
+      tabPanel("Basic Stats",showOutput("analysis","highcharts")),
       tabPanel("Crime Map", uiOutput("mapcenter"), div(class="span6",uiOutput("mapzoom")),
                div(class="span8", plotOutput("map",height=600,width=600)),div(class="span4",uiOutput("maptype")),div(class="span2",uiOutput("mapres")),
                div(class="span2",uiOutput("mapbw"))),
-      tabPanel("Analysis",showOutput("analysis","highcharts"), uiOutput("decomintro"), plotOutput("decomplot")),
-      #div(class="span4",uiOutput("weatherperiod"))
-      tabPanel("Weather", plotOutput("weather")),
       tabPanel("Crime Heat Map", uiOutput("hmapcenter"), div(class="span6",uiOutput("hmapzoom")),
                div(class="span8", plotOutput("heatmap",height=600,width=600)),div(class="span4",uiOutput("hmaptype")),div(class="span2",uiOutput("hmapres")),
                div(class="span2",uiOutput("hmapbw")), div(class="span2",uiOutput("halpharange")), div(class="span2",uiOutput("hbins")),
@@ -94,7 +91,9 @@ shinyUI(pageWithSidebar(
 #       tabPanel("Traffic", uiOutput("tmaptitle"),uiOutput("tmapcenter"), div(class="span6",uiOutput("tmapzoom")),
 #                div(class="span8", plotOutput("tmap",height=600,width=600)),div(class="span4",uiOutput("tmaptype")),div(class="span2",uiOutput("tmapres")),
 #                div(class="span2",uiOutput("tmapbw"))),
-  #    tabPanel("Map2", showOutput("map2","leaflet")),
+      tabPanel("Time Series",uiOutput("decomintro"), plotOutput("decomplot"),plotOutput("trends")), #textOutput("bfastmonitor")
+      tabPanel("Weather", plotOutput("weather")),
+      tabPanel("Data", dataTableOutput("datatable")),
       tabPanel("Credits", includeMarkdown("docs/credits.md"))
     ), 
 googleAnalytics()  

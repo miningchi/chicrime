@@ -1,12 +1,12 @@
 This site allows you to visualize and analyze Chicago's crime statistics.  Some specifics include:
-+ Finding crimes on a map
-+ Analyzing crimes over time
-+ A time series analysis that separates out the seasonal components from longer term trends
-+ A heat map
++ Basic statistics over time
++ Seeing individual crimes on a map of Chicago
++ Using a heat map to see trends in crime
++ Some time series analyses that show trends and abrupt changes in crime
 + The relationship between weather and crime
 + The underlying crime data 
 
-To use the site, simply enter a crime type of your choice (e.g. Theft).  
+To use the site, simply enter a crime type of your choice (e.g. Theft). If may take up to 30 seconds for some of the pages to load when performing a large analysis.  
 
 Additional options include changing the date range (the site contains data from 2001 to 2014) and the community area.  There is also an option to change the period of analysis, which is useful for functions that aggregate crimes over time.
 
