@@ -2,10 +2,10 @@ Chicago Crime Visualization and Analysis
 ========
 The code here is for a Shiny App found at <a href="https://miningchi2.shinyapps.io/chicrime/" target=" blank">MiningChi.com</a> that allows you to visualize and analyze Chicago's crime statistics.  Some specifics include:
 
-+ Finding crimes on a map
-+ Analyzing crimes over time
-+ A time series analysis that separates out the seasonal components from longer term trends
-+ A heat map
++ Basic statistics over time
++ Seeing individual crimes on a map of Chicago
++ Using a heat map to see trends in crime
++ Some time series analyses that show trends and abrupt changes in crime
 + The relationship between weather and crime
 + The underlying crime data 
 
